@@ -103,7 +103,7 @@ struct ContentView: View {
     private func badge(for item: SidebarItem) -> Int {
         guard let report = model.report else { return 0 }
         switch item {
-        case .findings: return report.findings.count
+        case .findings: return report.confirmedFindings.count
         case .cveList: return report.cveResults?.filter { $0.status == .affected }.count ?? 0
         case .checks: return report.checks.filter { $0.status == .fail || $0.status == .warning }.count
         default: return 0
@@ -137,6 +137,18 @@ struct SourceBadge: View {
             .overlay(Capsule().strokeBorder(.secondary.opacity(0.6)))
             .foregroundStyle(.secondary)
             .help(source == .bsi ? "Quelle: BSI WID/CERT-Bund" : "Quelle: NIST National Vulnerability Database")
+    }
+}
+
+struct UncertainBadge: View {
+    var body: some View {
+        Label("unsicher", systemImage: "questionmark.diamond")
+            .font(.caption2.weight(.semibold))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.gray.opacity(0.2), in: Capsule())
+            .foregroundStyle(.secondary)
+            .help("Formal zutreffend, aber unplausibel – bitte manuell prüfen")
     }
 }
 

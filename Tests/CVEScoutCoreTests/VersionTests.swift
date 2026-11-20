@@ -106,3 +106,32 @@ struct EvaluatorTests {
         #expect(affected("15.006.30000", specs, []) != nil)
     }
 }
+
+@Suite("Plausibility of matches")
+struct PlausibilityTests {
+    func reason(_ installed: String, _ spec: String, _ refs: [String]) -> String? {
+        AffectedEvaluator.implausibility(installed: Version(installed)!, matched: VersionSpec.parse(spec)!,
+                                         references: refs.compactMap(Version.init))
+    }
+
+    @Test func differentProductSameName() {
+        // Obsidian (notes, 1.x) vs. Obsidian Scheduler (<6.3.1)
+        #expect(reason("1.15.1", "<6.3.1", ["6.3.1"]) != nil)
+    }
+
+    @Test func plausibleMatchesStayCertain() {
+        #expect(reason("4.1.0", "<4.1.1", ["4.1.1"]) == nil)
+        // An older macOS release line is still a real finding.
+        #expect(reason("14.7", "Sequoia <15.8.2", ["15.8.2", "26.7.2", "27.2"]) == nil)
+        #expect(reason("26.003.22110", "<2026.004", ["2026.004"]) == nil)
+    }
+
+    @Test func noFixVersion() {
+        #expect(reason("9.0.2", ">=2.7", []) != nil)
+    }
+
+    @Test func dataQuirks() {
+        #expect(VersionSpec.parse("commit 4da9812") == nil)
+        #expect(VersionSpec.parse("=>1.11")?.constraints.first?.op == .ge)
+    }
+}

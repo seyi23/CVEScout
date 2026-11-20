@@ -23,8 +23,8 @@ public enum ReportExport {
         md += "- Zutreffende Einträge: \(report.findings.filter { $0.advisory.origin == .bsi }.count) BSI, \(report.findings.filter { $0.advisory.origin == .nvd }.count) NVD\n"
         if let v = report.kevCatalogVersion { md += "- CISA-KEV-Katalog: \(v)\n" }
         md += "\n## Zusammenfassung\n\n"
-        md += "| Betroffene Programme | BSI-Hinweise | CVEs | Aktiv ausgenutzt (KEV) |\n|---|---|---|---|\n"
-        md += "| \(report.vulnerableSoftwareCount) | \(report.findings.count) | \(report.uniqueCVECount) | \(report.exploitedCount) |\n\n"
+        md += "| Betroffene Programme | Hinweise | Unsichere Treffer | CVEs | Aktiv ausgenutzt (KEV) |\n|---|---|---|---|---|\n"
+        md += "| \(report.vulnerableSoftwareCount) | \(report.confirmedFindings.count) | \(report.uncertainFindings.count) | \(report.uniqueCVECount) | \(report.exploitedCount) |\n\n"
 
         md += "## Schwachstellen\n\n"
         if report.findings.isEmpty {
@@ -38,6 +38,7 @@ public enum ReportExport {
             md += "- Betroffener Bereich: `\(f.matchedRange)`\n"
             if !f.fixedVersions.isEmpty { md += "- Behoben in: \(f.fixedVersions.joined(separator: ", "))\n" }
             md += "- Zuordnung: \(f.confidence.label)\n"
+            if let reason = f.uncertainReason { md += "- **Unsicherer Treffer:** \(reason)\n" }
             md += "- CVEs (\(f.advisory.cves.count)): \(f.advisory.cves.prefix(20).joined(separator: ", "))\(f.advisory.cves.count > 20 ? ", …" : "")\n"
             if !f.exploited.isEmpty {
                 md += "- **Aktiv ausgenutzt (CISA KEV):** \(f.exploited.map(\.cveID).joined(separator: ", "))\n"

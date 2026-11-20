@@ -100,7 +100,7 @@ extension CVEWatchlist {
                     for ref in mapping.refs where !doc.leaves(for: ref).isEmpty {
                         let label = "\(mapping.item.name) \(mapping.item.version)"
                         if let hit = doc.evaluate(ref: ref, version: version, cve: cve) {
-                            affected.append(label)
+                            affected.append(hit.uncertainReason == nil ? label : label + " (unsicher)")
                             ranges.append(hit.leaf.fullName)
                         } else {
                             checked.append(label)

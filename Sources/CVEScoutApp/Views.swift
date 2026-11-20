@@ -15,8 +15,12 @@ struct OverviewView: View {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 12)], spacing: 12) {
                         StatTile(title: "Betroffene Programme", value: report.vulnerableSoftwareCount,
                                  tint: report.vulnerableSoftwareCount > 0 ? .orange : .green) { selection = .findings }
-                        StatTile(title: "Zutreffende Hinweise (BSI/NVD)", value: report.findings.count,
-                                 tint: report.findings.isEmpty ? .green : .orange) { selection = .findings }
+                        StatTile(title: "Zutreffende Hinweise (BSI/NVD)", value: report.confirmedFindings.count,
+                                 tint: report.confirmedFindings.isEmpty ? .green : .orange) { selection = .findings }
+                        if !report.uncertainFindings.isEmpty {
+                            StatTile(title: "Unsichere Treffer (prüfen)", value: report.uncertainFindings.count,
+                                     tint: .secondary) { selection = .findings }
+                        }
                         StatTile(title: "Aktiv ausgenutzte CVEs", value: report.exploitedCount,
                                  tint: report.exploitedCount > 0 ? .red : .green) { selection = .findings }
                         let problems = report.checks.filter { $0.status == .fail || $0.status == .warning }.count
@@ -65,7 +69,7 @@ struct OverviewView: View {
         GroupBox("Schweregrade") {
             HStack(spacing: 16) {
                 ForEach(Severity.allCases.reversed(), id: \.self) { sev in
-                    let n = report.findings.filter { $0.effectiveSeverity == sev }.count
+                    let n = report.confirmedFindings.filter { $0.effectiveSeverity == sev }.count
                     if n > 0 || sev != .unknown {
                         HStack(spacing: 6) {
                             SeverityBadge(severity: sev)
@@ -92,7 +96,7 @@ struct OverviewView: View {
                 }
                 GridRow {
                     Text("NIST NVD").foregroundStyle(.secondary)
-                    let n = report.findings.filter { $0.advisory.origin == .nvd }.count
+                    let n = report.confirmedFindings.filter { $0.advisory.origin == .nvd }.count
                     Text(model.useNVD ? "\(n) zutreffende CVEs (für Programme ohne BSI-Abdeckung)" : "deaktiviert")
                 }
                 GridRow {
@@ -189,6 +193,7 @@ struct FindingRow: View {
             HStack(spacing: 6) {
                 SeverityBadge(severity: finding.effectiveSeverity)
                 if !finding.exploited.isEmpty { KEVBadge() }
+                if finding.isUncertain { UncertainBadge() }
                 Spacer()
                 SourceBadge(source: finding.advisory.origin)
                 Text(finding.advisory.id).font(.caption).foregroundStyle(.secondary)
@@ -198,6 +203,7 @@ struct FindingRow: View {
                 .font(.caption).foregroundStyle(.secondary).lineLimit(1)
         }
         .padding(.vertical, 3)
+        .opacity(finding.isUncertain ? 0.65 : 1)
     }
 }
 
@@ -217,10 +223,25 @@ struct FindingDetail: View {
                 }
                 Text(finding.advisory.title).font(.title2.weight(.semibold)).textSelection(.enabled)
 
+                if let reason = finding.uncertainReason {
+                    GroupBox {
+                        Label {
+                            Text(reason).frame(maxWidth: .infinity, alignment: .leading)
+                        } icon: {
+                            Image(systemName: "questionmark.diamond").foregroundStyle(.orange)
+                        }
+                    } label: {
+                        Text("Unsicherer Treffer – bitte manuell prüfen").bold()
+                    }
+                }
+
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
                     GridRow { Text("Installiert").foregroundStyle(.secondary); Text("\(finding.software.name) \(finding.software.version)") }
                     GridRow { Text("Betroffen").foregroundStyle(.secondary); Text(finding.matchedRange).monospaced() }
-                    GridRow { Text("Behoben in").foregroundStyle(.secondary); Text(finding.fixedVersions.joined(separator: ", ")) }
+                    GridRow {
+                        Text("Behoben in").foregroundStyle(.secondary)
+                        Text(finding.fixedVersions.isEmpty ? "keine Angabe" : finding.fixedVersions.joined(separator: ", "))
+                    }
                     GridRow { Text("Zuordnung").foregroundStyle(.secondary); Text(finding.confidence.label) }
                     if let d = finding.advisory.updated {
                         GridRow { Text("Aktualisiert").foregroundStyle(.secondary); Text(d.formatted(date: .abbreviated, time: .omitted)) }

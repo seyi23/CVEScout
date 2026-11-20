@@ -7,7 +7,7 @@ CVEScout erfasst die auf deinem Mac installierte Software, gleicht deren Version
 Sicherheitseinstellungen von macOS. Aktiv ausgenutzte Lücken werden über den
 CISA-Katalog *Known Exploited Vulnerabilities* (KEV) hervorgehoben.
 
-> ⚠️ **Status: 0.2 (Entwicklungsversion).** Die Veröffentlichung auf GitHub ist mit Version 1.0 geplant.
+> ⚠️ **Status: 0.2.1 (Entwicklungsversion).** Die Veröffentlichung auf GitHub ist mit Version 1.0 geplant.
 
 ## Was CVEScout macht – und was nicht
 
@@ -78,7 +78,11 @@ eingestellten Zeitraum geprüft.
 5. Programme ohne BSI-Zuordnung, aber mit bekanntem CPE-Namen, werden bei der NVD per `cpeName` abgefragt.
    Treffer werden lokal nachgeprüft: Konfigurationen, die nur zusammen mit einem anderen Betriebssystem gelten,
    und Einträge ohne jede Versionsgrenze werden verworfen.
-6. Homebrew-Pakete ohne kuratierten Eintrag werden automatisch zugeordnet, wenn das BSI ein gleichnamiges
+6. **Plausibilitätsprüfung:** Liegt die installierte Version weit unter allen Versionen, die ein Hinweis nennt
+   (z. B. Obsidian 1.15 gegen „<6.3.1“ von *Obsidian Scheduler*), oder nennt der Hinweis keine Fix-Version, wird der
+   Treffer als *unsicher* markiert und getrennt angezeigt. Bekannte Fehlzuordnungen des BSI stehen in
+   `ProductCatalog.misattributedAdvisories`.
+7. Homebrew-Pakete ohne kuratierten Eintrag werden automatisch zugeordnet, wenn das BSI ein gleichnamiges
    „Open Source“-Produkt führt (z. B. `libpng`, `freetype`, `rclone`).
 
 ## Projektstruktur

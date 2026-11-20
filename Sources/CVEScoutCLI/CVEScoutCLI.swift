@@ -7,6 +7,14 @@ import Foundation
 struct CVEScoutCLI {
     static func log(_ s: String) { FileHandle.standardError.write(Data((s + "\n").utf8)) }
 
+    static func printFinding(_ f: Finding) {
+        let kev = f.exploited.isEmpty ? "" : "  🔥 \(f.exploited.count)× aktiv ausgenutzt"
+        let score = f.advisory.cvssScore.map { " CVSS \(String(format: "%.1f", $0))" } ?? ""
+        print("  [\(f.effectiveSeverity.label.uppercased())] \(f.software.name) \(f.software.version) – \(f.advisory.origin.label) \(f.advisory.id)\(score): \(f.advisory.title)\(kev)")
+        let fixed = f.fixedVersions.isEmpty ? "keine Angabe" : f.fixedVersions.joined(separator: ", ")
+        print("      betroffen: \(f.matchedRange)  →  behoben in: \(fixed)")
+    }
+
     static func main() async {
         let args = Array(CommandLine.arguments.dropFirst())
         if args.contains("-h") || args.contains("--help") {
@@ -69,18 +77,22 @@ struct CVEScoutCLI {
                 print(ReportExport.markdown(report))
             } else {
                 print("\nmacOS \(report.osVersion) · \(report.inventory.count) Programme/Pakete · \(report.mappedSoftwareIDs.count) mit BSI-Zuordnung · \(report.advisoriesEvaluated) BSI-Hinweise ausgewertet (\(Int(Date().timeIntervalSince(start)))s)\n")
-                if report.findings.isEmpty {
-                    print("✅ Keine bekannten Schwachstellen gefunden.")
-                } else {
-                    print("⚠️  \(report.findings.count) zutreffende BSI-Hinweise für \(report.vulnerableSoftwareCount) Programme:\n")
-                    for f in report.findings {
-                        let kev = f.exploited.isEmpty ? "" : "  🔥 \(f.exploited.count)× aktiv ausgenutzt"
-                        let score = f.advisory.cvssScore.map { " CVSS \(String(format: "%.1f", $0))" } ?? ""
-                        print("  [\(f.effectiveSeverity.label.uppercased())] \(f.software.name) \(f.software.version) – \(f.advisory.origin.label) \(f.advisory.id)\(score): \(f.advisory.title)\(kev)")
-                        print("      betroffen: \(f.matchedRange)  →  behoben in: \(f.fixedVersions.joined(separator: ", "))")
-                    }
-                }
-                if let results = report.cveResults {
+                let confirmed = report.confirmedFindings
+        if confirmed.isEmpty {
+            print("✅ Keine bekannten Schwachstellen gefunden.")
+        } else {
+            print("⚠️  \(confirmed.count) zutreffende Hinweise für \(report.vulnerableSoftwareCount) Programme:\n")
+            for f in confirmed { printFinding(f) }
+        }
+        let uncertain = report.uncertainFindings
+        if !uncertain.isEmpty {
+            print("\n❔ \(uncertain.count) unsichere Treffer (bitte manuell prüfen):\n")
+            for f in uncertain {
+                printFinding(f)
+                print("      Grund: \(f.uncertainReason ?? "")")
+            }
+        }
+        if let results = report.cveResults {
                     print("\nCVE-Liste (\(results.count) Einträge):")
                     for r in results {
                         let icon = switch r.status { case .affected: "❌"; case .patched: "✅"; case .notInstalled: "➖"; case .unknown: "❓" }
@@ -101,7 +113,7 @@ struct CVEScoutCLI {
                 for w in report.warnings { print("Hinweis: \(w)") }
             }
             let cveAffected = report.cveResults?.contains { $0.status == .affected } ?? false
-            exit(report.findings.isEmpty && !cveAffected ? 0 : 2)
+            exit(report.confirmedFindings.isEmpty && !cveAffected ? 0 : 2)
         } catch {
             log("Fehler: \(error.localizedDescription)")
             exit(1)

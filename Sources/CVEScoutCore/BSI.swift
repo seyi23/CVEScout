@@ -244,7 +244,16 @@ public struct CSAFAdvisory: Sendable {
     }
 
     /// - Parameter cve: restrict the check to products affected by this CVE (nil = whole advisory).
-    public func evaluate(ref: ProductRef, version: Version, cve: String? = nil) -> (leaf: Leaf, fixed: [String])? {
+    public struct Hit: Sendable {
+        public let leaf: Leaf
+        public let fixed: [String]
+        /// Set when the match is formally correct but implausible (see `evaluate`).
+        public let uncertainReason: String?
+    }
+
+    /// Evaluates whether `version` of `ref` is affected by this advisory.
+    /// - Parameter cve: restrict the check to products affected by this CVE (nil = whole advisory).
+    public func evaluate(ref: ProductRef, version: Version, cve: String? = nil) -> Hit? {
         let relevant = leaves(for: ref)
         guard !relevant.isEmpty else { return nil }
         let affectedIDs = cve.flatMap { affectedByCVE[$0] } ?? self.affectedIDs
@@ -263,6 +272,8 @@ public struct CSAFAdvisory: Sendable {
             }
         }
         guard !affectedSpecs.isEmpty else { return nil }
+        // A "fixed" version that lies inside an affected range contradicts the advisory (e.g. ">=1.11" / "=1.11").
+        fixedVersions.removeAll { fixed in affectedSpecs.contains { $0.0.matches(fixed.0) } }
 
         guard let match = AffectedEvaluator.matchingSpec(
             installed: version,
@@ -274,6 +285,8 @@ public struct CSAFAdvisory: Sendable {
         if fixedTexts.isEmpty {
             fixedTexts = affectedSpecs.compactMap { spec, _ in spec.upperBound.map { "\($0)" } }
         }
-        return (leaf, Array(Set(fixedTexts)).sorted())
+        let references = fixedVersions.map(\.0) + affectedSpecs.compactMap(\.0.upperBound)
+        let reason = AffectedEvaluator.implausibility(installed: version, matched: match, references: references)
+        return Hit(leaf: leaf, fixed: Array(Set(fixedTexts)).sorted(), uncertainReason: reason)
     }
 }

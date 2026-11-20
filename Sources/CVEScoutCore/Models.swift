@@ -148,6 +148,10 @@ public struct Finding: Codable, Sendable, Identifiable, Hashable {
     /// CVEs of this advisory that are listed in CISA KEV (actively exploited).
     public let exploited: [KEVEntry]
     public let confidence: MatchConfidence
+    /// Why this match is doubtful (implausible version line, no fix version); nil = plausible.
+    public var uncertainReason: String? = nil
+
+    public var isUncertain: Bool { uncertainReason != nil }
 
     /// Severity raised to critical when any CVE is known to be exploited in the wild.
     public var effectiveSeverity: Severity {
@@ -225,7 +229,11 @@ public struct ScanReport: Codable, Sendable {
         findings.filter { $0.software.id == item.id }
     }
 
-    public var vulnerableSoftwareCount: Int { Set(findings.map(\.software.id)).count }
-    public var exploitedCount: Int { Set(findings.flatMap { $0.exploited.map(\.cveID) }).count }
-    public var uniqueCVECount: Int { Set(findings.flatMap(\.advisory.cves)).count }
+    /// Findings without doubts – used for all headline numbers.
+    public var confirmedFindings: [Finding] { findings.filter { !$0.isUncertain } }
+    public var uncertainFindings: [Finding] { findings.filter(\.isUncertain) }
+
+    public var vulnerableSoftwareCount: Int { Set(confirmedFindings.map(\.software.id)).count }
+    public var exploitedCount: Int { Set(confirmedFindings.flatMap { $0.exploited.map(\.cveID) }).count }
+    public var uniqueCVECount: Int { Set(confirmedFindings.flatMap(\.advisory.cves)).count }
 }

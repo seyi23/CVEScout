@@ -92,6 +92,10 @@ public struct VersionSpec: Sendable, Hashable {
 
     public static func parse(_ raw: String) -> VersionSpec? {
         var text = raw.trimmingCharacters(in: .whitespaces)
+        // Commit hashes ("commit 4da9812") are not versions.
+        if isCommitReference(text) { return nil }
+        // BSI occasionally writes "=>1.11" / "=<2.0".
+        text = text.replacingOccurrences(of: "=>", with: ">=").replacingOccurrences(of: "=<", with: "<=")
         if text.hasPrefix("vers:"), let slash = text.firstIndex(of: "/") {
             text = String(text[text.index(after: slash)...]).replacingOccurrences(of: "|", with: " ")
         }
@@ -116,6 +120,11 @@ public struct VersionSpec: Sendable, Hashable {
             .trimmingCharacters(in: .whitespaces.union(.punctuationCharacters))
         let constraints = found.map { VersionConstraint(op: $0.op ?? .eq, version: $0.version) }
         return VersionSpec(label: label, constraints: constraints)
+    }
+
+    static func isCommitReference(_ text: String) -> Bool {
+        let lower = text.lowercased()
+        return lower.contains("commit") || lower.contains(/\b(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b/)
     }
 
     public func matches(_ v: Version) -> Bool {
@@ -186,6 +195,28 @@ public enum AffectedEvaluator {
         return candidates.max { a, b in
             (a.upperBound?.commonPrefixLength(with: installed) ?? -1) < (b.upperBound?.commonPrefixLength(with: installed) ?? -1)
         }
+    }
+
+    /// Explains why a formally matching version is still doubtful, or returns nil.
+    ///
+    /// - No fixed version at all ("ffmpeg >=2.7"): the claim cannot be checked.
+    /// - The installed version is far below every version the advisory names and shares no
+    ///   leading component with them (Obsidian 1.15 vs. "<6.3.1"): usually a different product
+    ///   with the same name, or an old release line the advisory does not consider.
+    public static func implausibility(installed rawInstalled: Version, matched: VersionSpec, references: [Version]) -> String? {
+        let installed = normalizeYearScheme(rawInstalled, references: references)
+        guard !references.isEmpty else {
+            return "Der Hinweis nennt keine behobene Version – die Angabe lässt sich nicht überprüfen."
+        }
+        let sharesLine = references.contains { $0.commonPrefixLength(with: installed) > 0 }
+        let major = installed.components.first ?? 0
+        let lowestMajor = references.compactMap(\.components.first).min() ?? 0
+        if !sharesLine, lowestMajor > major + 1 {
+            let named = Set(references.map(\.description)).sorted().joined(separator: ", ")
+            return "Die installierte Version \(rawInstalled) liegt weit unter allen im Hinweis genannten Versionen (\(named)). "
+                + "Vermutlich betrifft der Hinweis ein anderes Produkt gleichen Namens oder eine nicht mehr gepflegte Versionslinie."
+        }
+        return nil
     }
 
     /// Vendors such as Adobe ship "26.003.22110" while advisories write "2026.003.22110"

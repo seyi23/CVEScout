@@ -1,0 +1,38 @@
+name: False positive / wrong match
+description: CVEScout reports a vulnerability that does not apply to the installed software
+title: "[False positive] <app> <version> – <advisory id>"
+labels: ["false-positive", "catalog"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! False positives usually come from a wrong product mapping or from inaccurate version data
+        in an advisory. Please do **not** paste your full report – only the affected entry.
+  - type: input
+    id: software
+    attributes:
+      label: Software and version
+      description: As shown in CVEScout (name, version, bundle identifier or Homebrew formula)
+      placeholder: "Obsidian 1.15.1 (md.obsidian)"
+    validations:
+      required: true
+  - type: input
+    id: advisory
+    attributes:
+      label: Advisory / CVE
+      description: BSI advisory id (WID-SEC-W-…) or CVE id from NVD
+      placeholder: "WID-SEC-W-2025-2158 / CVE-2025-56449"
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why is this wrong?
+      description: e.g. different product with the same name, version already fixed, other platform only. Links to vendor release notes help.
+    validations:
+      required: true
+  - type: input
+    id: cvescout-version
+    attributes:
+      label: CVEScout version
+      placeholder: "0.3.0"

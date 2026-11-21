@@ -1,0 +1,38 @@
+name: Release
+
+# Push a tag like v0.4.0 → builds, tests and publishes a GitHub release with zip, dmg and CLI.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -n 1)
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          swift --version
+
+      - name: Test
+        run: swift test
+
+      - name: Package
+        run: VERSION="${GITHUB_REF_NAME#v}" ./scripts/package-release.sh
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PRERELEASE=""
+          case "$VERSION" in 0.*) PRERELEASE="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/*.zip dist/*.dmg dist/*.tar.gz dist/SHA256SUMS.txt \
+            --title "CVEScout $VERSION" --notes-file dist/RELEASE_NOTES.md $PRERELEASE

@@ -6,6 +6,11 @@
   (auch in App, CLI-Hilfe und Markdown-Bericht).
 - Bundle-ID `io.github.seyi23.cvescout`, im Build-Skript per `BUNDLE_ID` überschreibbar.
 - GitHub Actions: Build, Tests und App-Bundle als Artefakt bei jedem Push/PR.
+- Automatische Releases bei Tag `v*`: zip, dmg, CLI-Archiv, SHA-256-Prüfsummen, Release-Notes aus dem CHANGELOG
+  (`scripts/package-release.sh`).
+- App-Icon (Schild mit Lupe), reproduzierbar erzeugt mit `scripts/make-icon.swift`.
+- README auf Englisch (Hauptsprache) und Deutsch, CONTRIBUTING, SECURITY, Issue-Vorlagen (Fehlalarm,
+  fehlende Software, Fehler) und Pull-Request-Vorlage.
 
 ## 0.3.0 – 2026-11-21
 

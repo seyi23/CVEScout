@@ -1,0 +1,24 @@
+name: Add software to the catalog
+description: An installed app or Homebrew package is not checked ("nicht zugeordnet")
+title: "[Catalog] <app>"
+labels: ["catalog", "enhancement"]
+body:
+  - type: input
+    id: app
+    attributes:
+      label: App name and bundle identifier / Homebrew formula
+      description: "Bundle id: `mdls -name kMDItemCFBundleIdentifier -r /Applications/<App>.app`"
+      placeholder: "Slack – com.tinyspeck.slackmacgap"
+    validations:
+      required: true
+  - type: input
+    id: bsi
+    attributes:
+      label: BSI vendor / product name (if known)
+      placeholder: "Vendor: Slack, Product: Slack"
+  - type: input
+    id: cpe
+    attributes:
+      label: NVD CPE vendor:product (if known)
+      description: Search at https://nvd.nist.gov/products/cpe/search
+      placeholder: "slack:slack"

@@ -2,7 +2,7 @@
 
 # CVEScout
 
-🇬🇧 [English version](README.md)
+🇬🇧 [English version](README.md) · [![Built with Claude](https://img.shields.io/badge/built%20with-Claude%20Code-D97757)](#wie-cvescout-entstanden-ist)
 
 **Lokaler Schwachstellen-Check für macOS auf Basis der Sicherheitshinweise des BSI – ergänzt um die NVD.**
 
@@ -117,6 +117,17 @@ testet und veröffentlicht zip, dmg und CLI.
 - Weitere Katalog-Einträge (Beiträge willkommen, siehe CONTRIBUTING.md)
 - Signierte und notarisierte Releases (Workflow ist vorbereitet, benötigt ein Developer-ID-Zertifikat)
 - Anmeldeobjekte über `SMAppService` (nur mit erweiterten Rechten lesbar)
+
+## Wie CVEScout entstanden ist
+
+CVEScout ist ein **Vibe-Coding**-Projekt: Es ist im Dialog mit [Claude Code](https://claude.com/claude-code)
+entstanden, dem KI-Programmierassistenten von Anthropic. Idee, Anforderungen und Entscheidungen (Umfang,
+Datenquellen, was veröffentlicht wird) kamen von mir; Claude hat Code, Tests und Dokumentation geschrieben und die
+Ergebnisse mit echten Scans auf meinem Mac überprüft – inklusive Korrekturen von Fehlalarmen, etwa eines
+BSI-Hinweises, der dem falschen Produkt zugeordnet war.
+
+Da es ein Sicherheits-Tool ist: Die Abgleichslogik ist durch Unit-Tests abgedeckt und jeder Treffer verlinkt auf den
+Originalhinweis, trotzdem können Ergebnisse falsch sein. Fehler- und Fehlalarm-Meldungen sind sehr willkommen.
 
 ## Lizenz
 

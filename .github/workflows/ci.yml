@@ -19,7 +19,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # The code uses Swift 6.2 features (@concurrent) → pick the newest installed Xcode.
       - name: Select newest Xcode
@@ -32,15 +32,18 @@ jobs:
       - name: Build
         run: swift build
 
-      # Unit tests use fixtures only – no network access needed.
-      - name: Test
-        run: swift test
+      # Unit tests use fixtures only – no network access needed. Run them in both UI languages.
+      - name: Test (German)
+        run: CVESCOUT_LANG=de swift test
+
+      - name: Test (English)
+        run: CVESCOUT_LANG=en swift test
 
       - name: Build app bundle
         run: ./scripts/build-app.sh
 
       - name: Upload app bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: CVEScout-app-${{ github.sha }}
           path: build/CVEScout.app

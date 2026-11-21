@@ -20,7 +20,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Select newest Xcode
         run: |
@@ -29,7 +29,7 @@ jobs:
           swift --version
 
       - name: Test
-        run: swift test
+        run: CVESCOUT_LANG=de swift test && CVESCOUT_LANG=en swift test
 
       - name: Import signing certificate (optional)
         env:

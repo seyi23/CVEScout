@@ -30,7 +30,8 @@ struct ReportDiffTests {
         #expect(diff.newFindings.map(\.advisory.id) == ["C"])          // uncertain ones never notify
         #expect(diff.resolvedFindings.map(\.advisory.id) == ["B"])
         #expect(diff.hasExploited)
-        #expect(diff.notificationText?.title.contains("aktiv ausgenutzt") == true)
+        #expect(diff.notificationText?.title == tr("CVEScout: aktiv ausgenutzte Lücke gefunden",
+                                                    "CVEScout: actively exploited vulnerability found"))
     }
 
     @Test func nothingNew() {

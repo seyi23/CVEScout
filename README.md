@@ -5,6 +5,7 @@
 [![CI](https://github.com/seyi23/CVEScout/actions/workflows/ci.yml/badge.svg)](https://github.com/seyi23/CVEScout/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![macOS 14+](https://img.shields.io/badge/macOS-14%2B-lightgrey)
+[![Built with Claude](https://img.shields.io/badge/built%20with-Claude%20Code-D97757)](#how-this-was-built)
 
 🇩🇪 [Deutsche Version](README.de.md)
 
@@ -109,6 +110,17 @@ scripts/               build-app.sh, package-release.sh, make-icon.swift, screen
 - More catalog entries (contributions welcome – see below)
 - Signed and notarized releases (the release workflow is ready; it needs a Developer ID certificate)
 - Login items registered via `SMAppService` (needs privileges to read)
+
+## How this was built
+
+CVEScout is a **vibe coding** project: it was built in conversation with [Claude Code](https://claude.com/claude-code),
+Anthropic's AI coding assistant. The idea, the requirements and the decisions (scope, data sources, what to
+publish) came from me; Claude wrote the code, the tests and the documentation, and checked the results against
+real scans on my Mac – including fixing false positives such as an advisory filed under the wrong product.
+
+Because this is a security tool, please treat it accordingly: the matching logic is covered by unit tests and every
+finding links to its original advisory, but results can still be wrong. Bug reports and false-positive reports are
+very welcome.
 
 ## Contributing
 

@@ -78,6 +78,23 @@ public enum ReportExport {
         for c in report.checks {
             md += "| \(c.title) | \(c.status.label) | \(c.detail.replacingOccurrences(of: "|", with: "\\|")) |\n"
         }
+        if let items = report.persistence {
+            md += tr("\n## Autostart-Objekte (\(items.count))\n\n| Bewertung | Label | Art | Signatur | Programm |\n",
+                     "\n## Launch items (\(items.count))\n\n| Assessment | Label | Kind | Signature | Program |\n")
+            md += "|---|---|---|---|---|\n"
+            for i in items {
+                md += "| \(i.assessment.label) | \(i.label) | \(i.scope.label) | \(i.signature.displayName) | `\(i.program)` |\n"
+            }
+        }
+        if let exts = report.browserExtensions {
+            md += tr("\n## Browser-Erweiterungen (\(exts.count))\n\n| Browser | Name | Version | Alle Webseiten | Weitreichende Rechte |\n",
+                     "\n## Browser extensions (\(exts.count))\n\n| Browser | Name | Version | All websites | Powerful permissions |\n")
+            md += "|---|---|---|---|---|\n"
+            for e in exts {
+                let broad = e.broadAccess ? tr("ja", "yes") : ""
+                md += "| \(e.browser) | \(e.name) | \(e.version) | \(broad) | \(e.sensitivePermissions.joined(separator: ", ")) |\n"
+            }
+        }
         if !report.warnings.isEmpty {
             md += tr("\n## Hinweise\n\n", "\n## Notes\n\n") + report.warnings.map { "- \($0)" }.joined(separator: "\n") + "\n"
         }

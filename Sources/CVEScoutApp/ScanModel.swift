@@ -97,6 +97,16 @@ final class ScanModel {
             watchlist = CVEWatchlist(cves: cves)
             watchlistFileName = defaults.string(forKey: "watchlistFileName")
         }
+        if DemoData.isEnabled {
+            // Demo mode (screenshots): fictitious data, no scans, nothing is saved.
+            report = DemoData.report()
+            watchlist = CVEWatchlist(cves: report?.cveResults?.map(\.cve) ?? [])
+            watchlistFileName = "demo-cves.txt"
+            if let section = ProcessInfo.processInfo.environment["CVESCOUT_DEMO_SECTION"] {
+                sidebarSelection = SidebarItem(rawValue: section) ?? .overview
+            }
+            return
+        }
         report = Self.loadLastReport()
         startScheduler()
         if notificationsEnabled { Task { await requestNotificationPermission() } }
@@ -195,7 +205,7 @@ final class ScanModel {
     // MARK: Scanning
 
     func startScan(forceRefresh: Bool = false, automatic: Bool = false) {
-        guard !isScanning else { return }
+        guard !isScanning, !DemoData.isEnabled else { return }
         isScanning = true
         errorMessage = nil
         phase = .inventory

@@ -10,6 +10,20 @@ rm -rf "$DIST" && mkdir -p "$DIST"
 
 VERSION="$VERSION" ./scripts/build-app.sh
 
+# Optional notarization (needs a Developer ID signature, see SIGN_IDENTITY in build-app.sh):
+#   NOTARIZE=1 APPLE_ID=… APPLE_TEAM_ID=… APPLE_APP_PASSWORD=… (app-specific password)
+NOTARIZED=0
+if [ "${NOTARIZE:-0}" = "1" ]; then
+  : "${APPLE_ID:?}" "${APPLE_TEAM_ID:?}" "${APPLE_APP_PASSWORD:?}"
+  SUBMIT="$(mktemp -d)/CVEScout.zip"
+  ditto -c -k --keepParent build/CVEScout.app "$SUBMIT"
+  xcrun notarytool submit "$SUBMIT" --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" \
+    --password "$APPLE_APP_PASSWORD" --wait
+  xcrun stapler staple build/CVEScout.app
+  spctl --assess --type execute --verbose build/CVEScout.app
+  NOTARIZED=1
+fi
+
 # App as zip (keeps the bundle structure and signature)
 ditto -c -k --keepParent build/CVEScout.app "$DIST/CVEScout-$VERSION.zip"
 
@@ -37,10 +51,22 @@ tar -czf "$DIST/cvescout-cli-$VERSION-macos.tar.gz" -C build/CVEScout.app/Conten
 
 ### Installation
 
-1. `CVEScout-<version>.dmg` öffnen und CVEScout in den Ordner *Programme* ziehen.
-2. Die App ist (noch) nicht von Apple notarisiert. Beim ersten Start meldet macOS deshalb, dass die App
-   nicht geprüft werden kann: **Systemeinstellungen › Datenschutz & Sicherheit › „Trotzdem öffnen“**.
-3. Prüfsummen stehen in `SHA256SUMS.txt` (`shasum -a 256 -c SHA256SUMS.txt`).
+1. Open `CVEScout-<version>.dmg` and drag CVEScout to *Applications* (or unzip `CVEScout-<version>.zip`).
+   `CVEScout-<version>.dmg` öffnen und CVEScout in den Ordner *Programme* ziehen.
+NOTES
+  if [ "$NOTARIZED" = "1" ]; then
+    echo "2. Signed with Developer ID and notarized by Apple. / Mit Developer ID signiert und von Apple notarisiert."
+  else
+    cat <<'NOTES'
+2. This build is not notarized by Apple. On first launch allow it under **System Settings › Privacy & Security ›
+   “Open Anyway”**. / Nicht notarisiert: beim ersten Start unter **Systemeinstellungen › Datenschutz & Sicherheit ›
+   „Trotzdem öffnen“** freigeben.
+NOTES
+  fi
+  cat <<'NOTES'
+3. Checksums / Prüfsummen: `shasum -a 256 -c SHA256SUMS.txt`
+4. Command line tool / Kommandozeile: `cvescout-cli-<version>-macos.tar.gz` (also inside the app:
+   `CVEScout.app/Contents/Resources/cvescout`).
 
 *This product uses the NVD API but is not endorsed or certified by the NVD.*
 NOTES

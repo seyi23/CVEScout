@@ -11,7 +11,9 @@ CVEScout erfasst die auf deinem Mac installierte Software, gleicht deren Version
 Sicherheitseinstellungen von macOS. Aktiv ausgenutzte Lücken werden über den
 CISA-Katalog *Known Exploited Vulnerabilities* (KEV) hervorgehoben.
 
-> ⚠️ **Status: 0.4.0 (Entwicklungsversion).** Auf Deutsch und Englisch – folgt der Systemsprache, umschaltbar in den Einstellungen bzw. mit `--lang`.
+Auf Deutsch und Englisch – folgt der Systemsprache, umschaltbar in den Einstellungen bzw. mit `--lang`.
+
+<p align="center"><img src="docs/screenshots/overview.png" width="70%" alt="Übersicht"><br><sub>Screenshot mit Demo-Daten (<code>CVESCOUT_DEMO=1</code>)</sub></p>
 
 ## Was CVEScout macht – und was nicht
 
@@ -34,6 +36,8 @@ CISA-Katalog *Known Exploited Vulnerabilities* (KEV) hervorgehoben.
 | Aktiv ausgenutzt | Markierung über CISA KEV, Schweregrad wird dann auf „kritisch“ angehoben |
 | **CVE-Liste** | TXT-Datei mit einer CVE pro Zeile prüfen → *Betroffen / Nicht betroffen / Produkt nicht installiert / Keine Daten*; CVEs ohne BSI-Hinweis werden in der NVD nachgeschlagen (inkl. CVSS) |
 | Systemprüfungen | SIP, Gatekeeper, FileVault, Firewall + Tarnmodus, offene Fernzugriffsdienste, **ausstehende Apple-Updates**, automatische Updates, XProtect-Aktualität, automatische Anmeldung, Gastbenutzer |
+| Autostart-Objekte | Launch-Agents und -Daemons mit Signaturprüfung (Apple / Developer ID / nicht signiert / ad-hoc), Skripte über Interpreter, verwaiste Einträge, ungewöhnliche Orte |
+| Browser-Erweiterungen | Chrome, Brave, Edge, Vivaldi, Arc, Chromium, Firefox und Safari – markiert Erweiterungen mit Zugriff auf alle Webseiten und weitreichenden Rechten |
 | Menüleiste & Hintergrund | Status-Symbol in der Menüleiste, automatischer Scan (6 h bis wöchentlich), Mitteilungen nur bei neuen Funden, Autostart beim Anmelden, Dock-Symbol optional |
 | Export | Bericht als Markdown oder JSON |
 | CLI | `cvescout` für Terminal, Skripte und Automatisierung (Exit-Code 2 bei Funden) |
@@ -108,19 +112,11 @@ scripts/               build-app.sh (App-Bundle), package-release.sh (zip/dmg), 
 Release erstellen: CHANGELOG ergänzen, dann `git tag v0.4.0 && git push origin v0.4.0` – GitHub Actions baut,
 testet und veröffentlicht zip, dmg und CLI.
 
-## Roadmap bis 1.0
+## Ideen nach 1.0
 
-- [x] NVD/CPE als zweite Quelle (Programme ohne BSI-Abdeckung, CVEs ohne BSI-Hinweis) – 0.2
-- [x] Ausstehende Apple-Updates (`softwareupdate --list`) – 0.2
-- [x] Produktkatalog erweitert (30 CPE-Zuordnungen, generische Homebrew-Zuordnung) – 0.2
-- [ ] Weitere Zuordnungen (Slack, Microsoft Office für Mac – BSI führt Office für Mac ohne Versionsangaben)
-- [ ] Prüfung von Browser-Erweiterungen und Launch-Agents
-- [x] Hintergrund-Scan mit Benachrichtigung (Menüleisten-Modus) – 0.3
-- [x] Lizenz (MIT), NOTICE, CONTRIBUTING, SECURITY, Issue-Vorlagen
-- [x] GitHub Actions: CI und automatische Releases (zip, dmg, CLI), App-Icon
-- [x] Englische und deutsche Oberfläche – 0.4
-- [ ] Screenshots im README
-- [ ] Notarisierte, signierte Release-Builds (Developer ID)
+- Weitere Katalog-Einträge (Beiträge willkommen, siehe CONTRIBUTING.md)
+- Signierte und notarisierte Releases (Workflow ist vorbereitet, benötigt ein Developer-ID-Zertifikat)
+- Anmeldeobjekte über `SMAppService` (nur mit erweiterten Rechten lesbar)
 
 ## Lizenz
 

@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION="${VERSION:-0.4.0}"
+VERSION="${VERSION:-1.0.0}"
 # Reverse-DNS identifier; override for forks: BUNDLE_ID=io.github.<user>.cvescout ./scripts/build-app.sh
 BUNDLE_ID="${BUNDLE_ID:-io.github.seyi23.cvescout}"
 APP="build/CVEScout.app"
@@ -41,5 +41,14 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-codesign --force --deep --sign - "$APP"
+# Signing: ad-hoc by default. For releases set SIGN_IDENTITY="Developer ID Application: Name (TEAMID)"
+# → hardened runtime + secure timestamp, as required for notarization.
+SIGN_IDENTITY="${SIGN_IDENTITY:--}"
+if [ "$SIGN_IDENTITY" = "-" ]; then
+  codesign --force --deep --sign - "$APP"
+else
+  codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP/Contents/Resources/cvescout"
+  codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
+  codesign --verify --strict --verbose=2 "$APP"
+fi
 echo "✔ $APP gebaut (Version $VERSION, $BUNDLE_ID)"

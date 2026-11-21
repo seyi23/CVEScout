@@ -150,6 +150,25 @@ struct CVEScoutCLI {
                 print("  \(icon) \(c.title): \(c.detail)")
             }
         }
+        if let items = report.persistence {
+            let notable = items.filter { $0.assessment != .ok }
+            if !notable.isEmpty {
+                print("\n" + tr("Autostart-Objekte zum Prüfen:", "Launch items to review:"))
+                for i in notable {
+                    let icon = i.assessment == .warning ? "⚠️ " : "🔎"
+                    print("  \(icon) \(i.label) [\(i.scope.label), \(i.signature.displayName)]: \(i.notes.joined(separator: "; "))")
+                }
+            }
+        }
+        if let exts = report.browserExtensions {
+            let notable = exts.filter(\.needsReview)
+            if !notable.isEmpty {
+                print("\n" + tr("Browser-Erweiterungen mit weitreichenden Rechten:", "Browser extensions with powerful permissions:"))
+                for e in notable {
+                    print("  🔎 \(e.name) \(e.version) (\(e.browser)): \(e.sensitivePermissions.joined(separator: ", "))")
+                }
+            }
+        }
         for w in report.warnings { print(tr("Hinweis", "Note") + ": \(w)") }
     }
 }

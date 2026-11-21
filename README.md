@@ -15,7 +15,15 @@ CVEScout inventories the software installed on your Mac, matches the versions ag
 advisories and checks the most important macOS security settings. Vulnerabilities that are actively exploited
 in the wild are highlighted using the CISA *Known Exploited Vulnerabilities* catalog.
 
-> ⚠️ **Status: 0.4.0 (pre-release).** Available in English and German (follows the system language, switchable in the settings or with `--lang`).
+Available in English and German (follows the system language, switchable in the settings or with `--lang`).
+
+<p align="center">
+  <img src="docs/screenshots/overview.png" width="49%" alt="Overview">
+  <img src="docs/screenshots/findings.png" width="49%" alt="Vulnerabilities">
+  <img src="docs/screenshots/cveList.png" width="49%" alt="CVE list">
+  <img src="docs/screenshots/startup.png" width="49%" alt="Startup items and browser extensions">
+</p>
+<p align="center"><sub>Screenshots show fictitious demo data (<code>CVESCOUT_DEMO=1</code>).</sub></p>
 
 ## What CVEScout does – and what it doesn't
 
@@ -36,8 +44,10 @@ in the wild are highlighted using the CISA *Known Exploited Vulnerabilities* cat
 | Actively exploited | Flagged via CISA KEV, severity raised to critical |
 | **CVE list** | Check a TXT file with one CVE per line → *affected / not affected / product not installed / no data*, with CVSS from the NVD |
 | System checks | SIP, Gatekeeper, FileVault, firewall + stealth mode, exposed remote services, pending Apple updates, automatic updates, XProtect freshness, automatic login, guest account |
+| Startup items | Launch agents and daemons with code-signature check (Apple / Developer ID / unsigned / ad-hoc), scripts run through interpreters, orphaned entries, unusual locations |
+| Browser extensions | Chrome, Brave, Edge, Vivaldi, Arc, Chromium, Firefox and Safari – flags extensions with access to all websites plus powerful permissions |
 | Plausibility check | Matches that are formally correct but implausible (e.g. same product name, different product) are marked *uncertain* instead of raising an alarm |
-| Menu bar & background | Status icon in the menu bar, automatic scans (6 h to weekly), notifications only for *new* findings, launch at login |
+| Menu bar & background | Status icon in the menu bar, automatic scans (6 h to weekly), notifications only for *new* findings, new startup items or new extensions, launch at login |
 | Export & CLI | Markdown/JSON reports, `cvescout` command line tool (exit code 2 on findings) |
 | Languages | English and German – app, CLI and reports. Advisory titles from the BSI are published in German only. |
 
@@ -78,7 +88,9 @@ are cached for 24 hours. A free key is available at
    *known_affected* range and below the fixed version of its own release line.
 4. Apps without BSI coverage but with a known CPE name are looked up in the NVD; configurations that only
    apply together with another operating system and entries without any version bound are discarded.
-5. Implausible matches (installed version far below every version an advisory names, or no fixed version at
+5. Startup items: launchd plists are read and the started program's code signature is verified with the
+   Security framework. Scripts started through `sh`, `osascript`, `python` … are marked for review.
+6. Implausible matches (installed version far below every version an advisory names, or no fixed version at
    all) are marked *uncertain* and not counted. Known misattributed advisories are skipped.
 
 ## Project layout
@@ -88,19 +100,15 @@ Sources/CVEScoutCore   inventory, checks, BSI/CSAF, NVD, KEV, version logic, sca
 Sources/CVEScoutApp    SwiftUI app (window + menu bar)
 Sources/CVEScoutCLI    command line tool "cvescout"
 Tests/                 unit tests (Swift Testing, offline): swift test
-scripts/               build-app.sh, package-release.sh, make-icon.swift
+scripts/               build-app.sh, package-release.sh, make-icon.swift, screenshots.sh
 .github/workflows/     CI (build + tests) and release (on tag v*)
 ```
 
-## Roadmap to 1.0
+## Ideas after 1.0
 
-- [x] BSI + NVD matching, CVE lists, system checks, plausibility check
-- [x] Menu bar mode with background scans and notifications
-- [x] License, contributing guide, security policy, CI, automated releases, app icon
-- [x] English and German user interface
-- [ ] Screenshots
-- [ ] Launch agents and browser extension checks
-- [ ] Signed and notarized releases (Developer ID)
+- More catalog entries (contributions welcome – see below)
+- Signed and notarized releases (the release workflow is ready; it needs a Developer ID certificate)
+- Login items registered via `SMAppService` (needs privileges to read)
 
 ## Contributing
 

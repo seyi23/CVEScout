@@ -59,6 +59,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         ScanModel.applyDockPolicy(showDock)
         if showDock { NSApp.activate(ignoringOtherApps: true) }
         if ScanModel.canNotify { UNUserNotificationCenter.current().delegate = self }
+        if DemoData.isEnabled {
+            // Fixed, roomy window for reproducible screenshots.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                for window in NSApp.windows where window.isVisible && window.canBecomeMain {
+                    window.setFrame(NSRect(x: 80, y: 80, width: 1240, height: 780), display: true)
+                }
+            }
+        }
     }
 
     /// The app keeps running in the menu bar when the window is closed.

@@ -207,11 +207,16 @@ public struct ScanReport: Codable, Sendable {
     public let warnings: [String]
     /// Results for a user-supplied CVE list (nil if none was given).
     public var cveResults: [CVECheckResult]? = nil
+    /// Launch agents/daemons (nil when system checks were skipped or for older reports).
+    public var persistence: [PersistenceItem]? = nil
+    /// Installed browser extensions (nil when system checks were skipped or for older reports).
+    public var browserExtensions: [BrowserExtension]? = nil
 
     public init(date: Date, osVersion: String, inventory: [SoftwareItem], findings: [Finding],
                 checks: [SecurityCheckResult], mappedSoftwareIDs: [String], advisoriesEvaluated: Int,
                 bsiFeedDate: Date?, kevCatalogVersion: String?, warnings: [String],
-                cveResults: [CVECheckResult]? = nil) {
+                cveResults: [CVECheckResult]? = nil, persistence: [PersistenceItem]? = nil,
+                browserExtensions: [BrowserExtension]? = nil) {
         self.date = date
         self.osVersion = osVersion
         self.inventory = inventory
@@ -223,6 +228,8 @@ public struct ScanReport: Codable, Sendable {
         self.kevCatalogVersion = kevCatalogVersion
         self.warnings = warnings
         self.cveResults = cveResults
+        self.persistence = persistence
+        self.browserExtensions = browserExtensions
     }
 
     public func findings(for item: SoftwareItem) -> [Finding] {

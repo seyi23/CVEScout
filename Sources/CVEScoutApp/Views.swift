@@ -101,7 +101,7 @@ struct OverviewView: View {
                 GridRow {
                     Text("NIST NVD").foregroundStyle(.secondary)
                     let n = report.confirmedFindings.filter { $0.advisory.origin == .nvd }.count
-                    Text(model.useNVD ? tr("\(n) zutreffende CVEs (für Programme ohne BSI-Abdeckung)", "\(n) matching CVEs (for apps without BSI coverage)") : tr("deaktiviert", "disabled"))
+                    Text(model.useNVD ? tr("\(n) zutreffende CVEs (für Programme ohne BSI-Abdeckung)", "\(n) matching CVE\(n == 1 ? "" : "s") (for apps without BSI coverage)") : tr("deaktiviert", "disabled"))
                 }
                 GridRow {
                     Text("CISA KEV").foregroundStyle(.secondary)
@@ -129,7 +129,7 @@ struct StatTile: View {
                         .foregroundStyle(tint)
                     if let subtitle { Text(subtitle).foregroundStyle(.secondary) }
                 }
-                Text(title).font(.callout).foregroundStyle(.secondary)
+                Text(title).font(.callout).foregroundStyle(.secondary).lineLimit(2, reservesSpace: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
@@ -181,6 +181,7 @@ struct FindingsView: View {
                     }
                     .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
                 }
+                .onAppear { if selected == nil { selected = findings.first?.id } }
                 .searchable(text: $search, prompt: tr("Programm, Titel oder CVE", "App, title or CVE"))
             }
         } else {
@@ -350,7 +351,7 @@ struct CVEListView: View {
                     TableColumn("CVSS") { r in
                         Text(r.cvssScore.map { String(format: "%.1f", $0) } ?? "–").monospacedDigit().foregroundStyle(.secondary)
                     }
-                    .width(min: 40, ideal: 50)
+                    .width(min: 40, ideal: 50, max: 60)
                     .width(min: 170, ideal: 200)
                     TableColumn("Software") { r in Text(r.software.joined(separator: ", ")).lineLimit(2) }
                     TableColumn(tr("Betroffener Bereich", "Affected range")) { r in Text(r.matchedRanges.joined(separator: ", ")).lineLimit(2).foregroundStyle(.secondary) }

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.0 – 2026-11-21
+
+Erste öffentliche Version. / First public release.
+
+- **Autostart-Objekte:** Launch-Agents und -Daemons mit Signaturprüfung über das Security-Framework (Apple,
+  Developer ID, App Store, ad-hoc, nicht signiert, ungültig), Skripte über Interpreter, verwaiste Einträge,
+  ungewöhnliche Orte. Eigener Bereich „Autostart & Add-ons“ mit „Im Finder zeigen“.
+- **Browser-Erweiterungen:** Chrome, Brave, Edge, Vivaldi, Arc, Chromium, Firefox, Safari – mit Zugriff auf alle
+  Webseiten und weitreichenden Rechten (nativeMessaging, debugger, proxy, cookies …).
+- **Mitteilungen** auch bei neuen Autostart-Objekten und neuen Browser-Erweiterungen.
+- **Signierung & Notarisierung vorbereitet:** `SIGN_IDENTITY` (Hardened Runtime) und `NOTARIZE=1`; der
+  Release-Workflow signiert und notarisiert automatisch, sobald die Secrets hinterlegt sind.
+- **Demo-Modus** (`CVESCOUT_DEMO=1`) und `scripts/screenshots.sh` für reproduzierbare Screenshots ohne persönliche Daten.
+- Erster Eintrag der Schwachstellen-Liste wird automatisch ausgewählt; einheitliche Kachelhöhen in der Übersicht.
+
 ## 0.4.0 – 2026-11-21
 
 - **Englische Oberfläche:** App, Menüleiste, Mitteilungen, CLI und Berichte gibt es auf Deutsch und Englisch.

@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum SidebarItem: String, Hashable, CaseIterable, Identifiable {
-    case overview, findings, cveList, software, checks
+    case overview, findings, cveList, software, checks, startup
     var id: String { rawValue }
 
     var title: String {
@@ -13,6 +13,7 @@ enum SidebarItem: String, Hashable, CaseIterable, Identifiable {
         case .cveList: tr("CVE-Liste", "CVE list")
         case .software: "Software"
         case .checks: tr("Systemprüfungen", "System checks")
+        case .startup: tr("Autostart & Add-ons", "Startup & Add-ons")
         }
     }
 
@@ -23,6 +24,7 @@ enum SidebarItem: String, Hashable, CaseIterable, Identifiable {
         case .cveList: "list.bullet.rectangle"
         case .software: "shippingbox"
         case .checks: "checklist"
+        case .startup: "power.circle"
         }
     }
 }
@@ -38,7 +40,7 @@ struct ContentView: View {
                     .badge(badge(for: item))
                     .tag(item)
             }
-            .navigationSplitViewColumnWidth(min: 190, ideal: 210)
+            .navigationSplitViewColumnWidth(min: 210, ideal: 240)
         } detail: {
             Group {
                 switch model.sidebarSelection ?? .overview {
@@ -47,6 +49,7 @@ struct ContentView: View {
                 case .cveList: CVEListView()
                 case .software: SoftwareView()
                 case .checks: ChecksView()
+                case .startup: StartupView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -105,6 +108,8 @@ struct ContentView: View {
         case .findings: return report.confirmedFindings.count
         case .cveList: return report.cveResults?.filter { $0.status == .affected }.count ?? 0
         case .checks: return report.checks.filter { $0.status == .fail || $0.status == .warning }.count
+        case .startup: return (report.persistence?.filter { $0.assessment == .warning }.count ?? 0)
+            + (report.browserExtensions?.filter(\.needsReview).count ?? 0)
         default: return 0
         }
     }

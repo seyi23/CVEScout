@@ -1,6 +1,7 @@
 import AppKit
 import CVEScoutCore
 import SwiftUI
+import UserNotifications
 
 @main
 struct CVEScoutApp: App {
@@ -8,7 +9,7 @@ struct CVEScoutApp: App {
     @State private var model = ScanModel()
 
     var body: some Scene {
-        WindowGroup("CVEScout") {
+        Window("CVEScout", id: MainWindow.id) {
             ContentView()
                 .environment(model)
                 .frame(minWidth: 960, minHeight: 600)
@@ -29,6 +30,15 @@ struct CVEScoutApp: App {
             }
         }
 
+        MenuBarExtra {
+            MenuBarView()
+                .environment(model)
+        } label: {
+            Image(systemName: model.statusSymbol)
+                .accessibilityLabel("CVEScout: \(model.statusHeadline)")
+        }
+        .menuBarExtraStyle(.window)
+
         Settings {
             SettingsView()
                 .environment(model)
@@ -36,12 +46,23 @@ struct CVEScoutApp: App {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+enum MainWindow {
+    static let id = "main"
+}
+
+final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Needed when started as a bare SwiftPM executable (swift run) instead of an .app bundle.
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
+        let showDock = UserDefaults.standard.object(forKey: "showDockIcon") as? Bool ?? true
+        ScanModel.applyDockPolicy(showDock)
+        if showDock { NSApp.activate(ignoringOtherApps: true) }
+        if ScanModel.canNotify { UNUserNotificationCenter.current().delegate = self }
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    /// The app keeps running in the menu bar when the window is closed.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                            willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+        [.banner, .sound]
+    }
 }

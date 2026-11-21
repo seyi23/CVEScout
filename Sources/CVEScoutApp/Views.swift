@@ -467,14 +467,30 @@ struct SettingsView: View {
     var body: some View {
         @Bindable var model = model
         Form {
-            Picker("BSI-Hinweise berücksichtigen", selection: $model.lookbackDays) {
-                Text("1 Jahr").tag(365)
-                Text("2 Jahre").tag(730)
-                Text("3 Jahre").tag(1095)
-                Text("5 Jahre").tag(1825)
+            Section("Umfang") {
+                Picker("BSI-Hinweise berücksichtigen", selection: $model.lookbackDays) {
+                    Text("1 Jahr").tag(365)
+                    Text("2 Jahre").tag(730)
+                    Text("3 Jahre").tag(1095)
+                    Text("5 Jahre").tag(1825)
+                }
+                Toggle("Programme in /Applications prüfen", isOn: $model.includeApplications)
+                Toggle("Homebrew-Pakete prüfen", isOn: $model.includeHomebrew)
             }
-            Toggle("Programme in /Applications prüfen", isOn: $model.includeApplications)
-            Toggle("Homebrew-Pakete prüfen", isOn: $model.includeHomebrew)
+            Section {
+                Picker("Automatisch scannen", selection: $model.autoScanInterval) {
+                    ForEach(AutoScanInterval.allCases) { Text($0.label).tag($0) }
+                }
+                Toggle("Mitteilung bei neuen Funden", isOn: $model.notificationsEnabled)
+                    .disabled(model.autoScanInterval == .off)
+                Toggle("Beim Anmelden starten", isOn: $model.launchAtLogin)
+                Toggle("Symbol im Dock anzeigen", isOn: $model.showDockIcon)
+            } header: {
+                Text("Hintergrund")
+            } footer: {
+                Text("CVEScout läuft nach dem Schließen des Fensters in der Menüleiste weiter und scannt im gewählten Abstand. Mitteilungen gibt es nur für neue bestätigte Funde und neu auffällige Einstellungen.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
             Section {
                 Toggle("NVD als zweite Quelle nutzen", isOn: $model.useNVD)
                 SecureField("NVD-API-Schlüssel (optional)", text: $model.nvdAPIKey)
@@ -498,7 +514,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 500)
+        .frame(width: 520)
         .padding()
     }
 }

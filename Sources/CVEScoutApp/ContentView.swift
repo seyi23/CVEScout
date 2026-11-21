@@ -29,12 +29,11 @@ enum SidebarItem: String, Hashable, CaseIterable, Identifiable {
 
 struct ContentView: View {
     @Environment(ScanModel.self) private var model
-    @State private var selection: SidebarItem? = .overview
     @State private var dropTargeted = false
 
     var body: some View {
         NavigationSplitView {
-            List(SidebarItem.allCases, selection: $selection) { item in
+            List(SidebarItem.allCases, selection: Bindable(model).sidebarSelection) { item in
                 Label(item.title, systemImage: item.icon)
                     .badge(badge(for: item))
                     .tag(item)
@@ -42,8 +41,8 @@ struct ContentView: View {
             .navigationSplitViewColumnWidth(min: 190, ideal: 210)
         } detail: {
             Group {
-                switch selection ?? .overview {
-                case .overview: OverviewView(selection: $selection)
+                switch model.sidebarSelection ?? .overview {
+                case .overview: OverviewView(selection: Bindable(model).sidebarSelection)
                 case .findings: FindingsView()
                 case .cveList: CVEListView()
                 case .software: SoftwareView()
@@ -85,7 +84,7 @@ struct ContentView: View {
                 guard let url else { return }
                 Task { @MainActor in
                     model.importWatchlist(from: url)
-                    selection = .cveList
+                    model.sidebarSelection = .cveList
                 }
             }
             return true

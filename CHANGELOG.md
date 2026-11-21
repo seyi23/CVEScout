@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 – 2026-11-21
+
+- **Menüleisten-Modus:** Schild-Symbol in der Menüleiste zeigt den Status (grün/orange/rot), ein Klick öffnet
+  ein Panel mit Kennzahlen, den betroffenen Programmen und Schnellaktionen. Die App läuft nach dem Schließen
+  des Fensters weiter; das Dock-Symbol lässt sich ausblenden.
+- **Hintergrund-Scan:** automatisch alle 6 h, 12 h, täglich (Standard) oder wöchentlich; nach Ruhezustand wird
+  ein fälliger Scan nachgeholt, bei fehlender Verbindung nach 15 Minuten erneut versucht.
+- **Mitteilungen** nur bei *neuen* bestätigten Funden oder neu auffälligen Einstellungen (Vergleich mit dem
+  vorherigen Scan); aktiv ausgenutzte Lücken werden im Titel hervorgehoben.
+- **Beim Anmelden starten** (SMAppService).
+
 ## 0.2.1 – 2026-11-21
 
 - **Fehlzuordnung behoben:** BSI-Hinweis WID-SEC-W-2025-2158 (CVE-2025-56449) betrifft „Obsidian Scheduler“,

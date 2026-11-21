@@ -7,7 +7,7 @@ CVEScout erfasst die auf deinem Mac installierte Software, gleicht deren Version
 Sicherheitseinstellungen von macOS. Aktiv ausgenutzte Lücken werden über den
 CISA-Katalog *Known Exploited Vulnerabilities* (KEV) hervorgehoben.
 
-> ⚠️ **Status: 0.2.1 (Entwicklungsversion).** Die Veröffentlichung auf GitHub ist mit Version 1.0 geplant.
+> ⚠️ **Status: 0.3.0 (Entwicklungsversion).** Die Veröffentlichung auf GitHub ist mit Version 1.0 geplant.
 
 ## Was CVEScout macht – und was nicht
 
@@ -30,6 +30,7 @@ CISA-Katalog *Known Exploited Vulnerabilities* (KEV) hervorgehoben.
 | Aktiv ausgenutzt | Markierung über CISA KEV, Schweregrad wird dann auf „kritisch“ angehoben |
 | **CVE-Liste** | TXT-Datei mit einer CVE pro Zeile prüfen → *Betroffen / Nicht betroffen / Produkt nicht installiert / Keine Daten*; CVEs ohne BSI-Hinweis werden in der NVD nachgeschlagen (inkl. CVSS) |
 | Systemprüfungen | SIP, Gatekeeper, FileVault, Firewall + Tarnmodus, offene Fernzugriffsdienste, **ausstehende Apple-Updates**, automatische Updates, XProtect-Aktualität, automatische Anmeldung, Gastbenutzer |
+| Menüleiste & Hintergrund | Status-Symbol in der Menüleiste, automatischer Scan (6 h bis wöchentlich), Mitteilungen nur bei neuen Funden, Autostart beim Anmelden, Dock-Symbol optional |
 | Export | Bericht als Markdown oder JSON |
 | CLI | `cvescout` für Terminal, Skripte und Automatisierung (Exit-Code 2 bei Funden) |
 
@@ -102,7 +103,7 @@ scripts/build-app.sh   App-Bundle bauen
 - [x] Produktkatalog erweitert (30 CPE-Zuordnungen, generische Homebrew-Zuordnung) – 0.2
 - [ ] Weitere Zuordnungen (Slack, Microsoft Office für Mac – BSI führt Office für Mac ohne Versionsangaben)
 - [ ] Prüfung von Browser-Erweiterungen und Launch-Agents
-- [ ] Hintergrund-Scan mit Benachrichtigung (Menüleisten-Modus)
+- [x] Hintergrund-Scan mit Benachrichtigung (Menüleisten-Modus) – 0.3
 - [ ] App-Icon, Englische Lokalisierung
 - [ ] Notarisierte, signierte Release-Builds (Developer ID) + GitHub Actions CI
 - [ ] Lizenz festlegen (Vorschlag: MIT), CONTRIBUTING, Veröffentlichung auf GitHub

@@ -2,7 +2,10 @@ import AppKit
 import CVEScoutCore
 import Foundation
 import Observation
+import ServiceManagement
+import SwiftUI
 import UniformTypeIdentifiers
+import UserNotifications
 
 @MainActor
 @Observable
@@ -13,6 +16,11 @@ final class ScanModel {
     var errorMessage: String?
     var watchlist: CVEWatchlist?
     var watchlistFileName: String?
+    var sidebarSelection: SidebarItem? = .overview
+    /// Changes found by the most recent scan compared to the one before.
+    var lastDiff: ReportDiff?
+    private var lastAutomaticAttempt: Date?
+    private var schedulerTask: Task<Void, Never>?
 
     // Settings (persisted in UserDefaults)
     var lookbackDays: Int { didSet { defaults.set(lookbackDays, forKey: "lookbackDays") } }
@@ -21,26 +29,144 @@ final class ScanModel {
     var useNVD: Bool { didSet { defaults.set(useNVD, forKey: "useNVD") } }
     var nvdAPIKey: String { didSet { Keychain.write("nvd-api-key", value: nvdAPIKey) } }
 
+    // Background operation
+    var autoScanInterval: AutoScanInterval {
+        didSet { defaults.set(autoScanInterval.rawValue, forKey: "autoScanInterval") }
+    }
+    var notificationsEnabled: Bool {
+        didSet {
+            defaults.set(notificationsEnabled, forKey: "notificationsEnabled")
+            if notificationsEnabled { Task { await requestNotificationPermission() } }
+        }
+    }
+    var showDockIcon: Bool {
+        didSet {
+            defaults.set(showDockIcon, forKey: "showDockIcon")
+            Self.applyDockPolicy(showDockIcon)
+        }
+    }
+    var launchAtLogin: Bool {
+        didSet {
+            guard launchAtLogin != (SMAppService.mainApp.status == .enabled) else { return }
+            do {
+                if launchAtLogin { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
+            } catch {
+                errorMessage = "Autostart konnte nicht geändert werden: \(error.localizedDescription)"
+                launchAtLogin = SMAppService.mainApp.status == .enabled
+            }
+        }
+    }
+
     private let defaults = UserDefaults.standard
     private let scanner = VulnerabilityScanner()
 
     init() {
-        defaults.register(defaults: ["lookbackDays": 730, "includeHomebrew": true, "includeApplications": true, "useNVD": true])
+        defaults.register(defaults: [
+            "lookbackDays": 730, "includeHomebrew": true, "includeApplications": true, "useNVD": true,
+            "autoScanInterval": AutoScanInterval.daily.rawValue, "notificationsEnabled": true, "showDockIcon": true,
+        ])
         lookbackDays = defaults.integer(forKey: "lookbackDays")
         includeHomebrew = defaults.bool(forKey: "includeHomebrew")
         includeApplications = defaults.bool(forKey: "includeApplications")
         useNVD = defaults.bool(forKey: "useNVD")
         nvdAPIKey = Keychain.read("nvd-api-key") ?? ""
+        autoScanInterval = AutoScanInterval(rawValue: defaults.integer(forKey: "autoScanInterval")) ?? .daily
+        notificationsEnabled = defaults.bool(forKey: "notificationsEnabled")
+        showDockIcon = defaults.bool(forKey: "showDockIcon")
+        launchAtLogin = SMAppService.mainApp.status == .enabled
         if let cves = defaults.stringArray(forKey: "watchlist"), !cves.isEmpty {
             watchlist = CVEWatchlist(cves: cves)
             watchlistFileName = defaults.string(forKey: "watchlistFileName")
         }
         report = Self.loadLastReport()
+        startScheduler()
+        if notificationsEnabled { Task { await requestNotificationPermission() } }
+    }
+
+    // MARK: Background scheduling
+
+    /// Checks once a minute whether an automatic scan is due. Polling (instead of one long timer)
+    /// copes with sleep/wake and with interval changes in the settings.
+    private func startScheduler() {
+        schedulerTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                self?.schedulerTick()
+            }
+        }
+    }
+
+    private func schedulerTick() {
+        guard !isScanning, autoScanInterval.isDue(lastScan: report?.date) else { return }
+        // After a failed attempt (e.g. offline) wait 15 minutes before trying again.
+        if let last = lastAutomaticAttempt, Date().timeIntervalSince(last) < 15 * 60 { return }
+        lastAutomaticAttempt = Date()
+        startScan(automatic: true)
+    }
+
+    var nextAutomaticScan: Date? {
+        guard let interval = autoScanInterval.interval else { return nil }
+        return (report?.date ?? Date()).addingTimeInterval(interval)
+    }
+
+    // MARK: Status for the menu bar
+
+    var statusSymbol: String {
+        if isScanning { return "shield.lefthalf.filled" }
+        guard let report else { return "shield" }
+        if report.exploitedCount > 0 { return "xmark.shield.fill" }
+        if !report.confirmedFindings.isEmpty || report.checks.contains(where: { $0.status == .fail }) {
+            return "exclamationmark.shield.fill"
+        }
+        return "checkmark.shield.fill"
+    }
+
+    var statusColor: Color {
+        guard let report, !isScanning else { return .secondary }
+        if report.exploitedCount > 0 || report.checks.contains(where: { $0.status == .fail }) { return .red }
+        if !report.confirmedFindings.isEmpty { return .orange }
+        return .green
+    }
+
+    var statusHeadline: String {
+        if isScanning { return "Scan läuft …" }
+        guard let report else { return "Noch kein Scan" }
+        if report.exploitedCount > 0 { return "Aktiv ausgenutzte Lücke!" }
+        let n = report.vulnerableSoftwareCount
+        if n > 0 { return n == 1 ? "1 Programm verwundbar" : "\(n) Programme verwundbar" }
+        if report.checks.contains(where: { $0.status == .fail }) { return "Einstellung kritisch" }
+        return "Keine bekannten Lücken"
+    }
+
+    // MARK: Window & Dock
+
+    static func applyDockPolicy(_ visible: Bool) {
+        NSApp?.setActivationPolicy(visible ? .regular : .accessory)
+    }
+
+    // MARK: Notifications
+
+    /// UNUserNotificationCenter needs a real app bundle (not available under `swift run`).
+    static var canNotify: Bool { Bundle.main.bundleURL.pathExtension == "app" }
+
+    func requestNotificationPermission() async {
+        guard Self.canNotify else { return }
+        _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
+    }
+
+    private func notify(_ diff: ReportDiff) {
+        guard Self.canNotify, notificationsEnabled, let text = diff.notificationText else { return }
+        let content = UNMutableNotificationContent()
+        content.title = text.title
+        content.body = text.body
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+        Task { try? await UNUserNotificationCenter.current().add(request) }
     }
 
     // MARK: Scanning
 
-    func startScan(forceRefresh: Bool = false) {
+    func startScan(forceRefresh: Bool = false, automatic: Bool = false) {
         guard !isScanning else { return }
         isScanning = true
         errorMessage = nil
@@ -59,10 +185,14 @@ final class ScanModel {
                 let report = try await scanner.run(options: options) { phase in
                     Task { @MainActor in self.phase = phase }
                 }
+                let diff = ReportDiff(current: report, previous: self.report)
+                self.lastDiff = diff
                 self.report = report
                 Self.saveLastReport(report)
+                if automatic { self.notify(diff) }
             } catch {
-                self.errorMessage = "Scan fehlgeschlagen: \(error.localizedDescription)"
+                // Automatic scans fail silently (e.g. offline); the scheduler retries later.
+                if !automatic { self.errorMessage = "Scan fehlgeschlagen: \(error.localizedDescription)" }
             }
             self.isScanning = false
             self.phase = nil

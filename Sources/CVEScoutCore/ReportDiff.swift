@@ -29,12 +29,12 @@ public struct ReportDiff: Sendable {
         if !newFindings.isEmpty {
             let programs = Array(Set(newFindings.map(\.software.name))).sorted()
             let list = programs.prefix(3).joined(separator: ", ") + (programs.count > 3 ? " …" : "")
-            parts.append("\(newFindings.count) neue Schwachstelle(n): \(list)")
+            parts.append(tr("\(newFindings.count) neue Schwachstelle(n): \(list)", "\(newFindings.count) new vulnerabilit\(newFindings.count == 1 ? "y" : "ies"): \(list)"))
         }
         if !newProblems.isEmpty {
-            parts.append("Einstellungen: " + newProblems.map(\.title).joined(separator: ", "))
+            parts.append(tr("Einstellungen: ", "Settings: ") + newProblems.map(\.title).joined(separator: ", "))
         }
-        let title = hasExploited ? "CVEScout: aktiv ausgenutzte Lücke gefunden" : "CVEScout: neue Sicherheitsprobleme"
+        let title = hasExploited ? tr("CVEScout: aktiv ausgenutzte Lücke gefunden", "CVEScout: actively exploited vulnerability found") : tr("CVEScout: neue Sicherheitsprobleme", "CVEScout: new security issues")
         return (title, parts.joined(separator: "\n"))
     }
 }
@@ -51,11 +51,11 @@ public enum AutoScanInterval: Int, CaseIterable, Sendable, Identifiable {
 
     public var label: String {
         switch self {
-        case .off: "Aus"
-        case .every6Hours: "Alle 6 Stunden"
-        case .every12Hours: "Alle 12 Stunden"
-        case .daily: "Täglich"
-        case .weekly: "Wöchentlich"
+        case .off: tr("Aus", "Off")
+        case .every6Hours: tr("Alle 6 Stunden", "Every 6 hours")
+        case .every12Hours: tr("Alle 12 Stunden", "Every 12 hours")
+        case .daily: tr("Täglich", "Daily")
+        case .weekly: tr("Wöchentlich", "Weekly")
         }
     }
 

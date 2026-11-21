@@ -206,15 +206,19 @@ public enum AffectedEvaluator {
     public static func implausibility(installed rawInstalled: Version, matched: VersionSpec, references: [Version]) -> String? {
         let installed = normalizeYearScheme(rawInstalled, references: references)
         guard !references.isEmpty else {
-            return "Der Hinweis nennt keine behobene Version – die Angabe lässt sich nicht überprüfen."
+            return tr("Der Hinweis nennt keine behobene Version – die Angabe lässt sich nicht überprüfen.", "The advisory names no fixed version – the claim cannot be verified.")
         }
         let sharesLine = references.contains { $0.commonPrefixLength(with: installed) > 0 }
         let major = installed.components.first ?? 0
         let lowestMajor = references.compactMap(\.components.first).min() ?? 0
         if !sharesLine, lowestMajor > major + 1 {
             let named = Set(references.map(\.description)).sorted().joined(separator: ", ")
-            return "Die installierte Version \(rawInstalled) liegt weit unter allen im Hinweis genannten Versionen (\(named)). "
-                + "Vermutlich betrifft der Hinweis ein anderes Produkt gleichen Namens oder eine nicht mehr gepflegte Versionslinie."
+            return tr(
+                "Die installierte Version \(rawInstalled) liegt weit unter allen im Hinweis genannten Versionen (\(named)). "
+                    + "Vermutlich betrifft der Hinweis ein anderes Produkt gleichen Namens oder eine nicht mehr gepflegte Versionslinie.",
+                "The installed version \(rawInstalled) is far below every version the advisory names (\(named)). "
+                    + "The advisory probably concerns a different product with the same name or a release line that is no longer maintained."
+            )
         }
         return nil
     }

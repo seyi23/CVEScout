@@ -96,9 +96,9 @@ public enum ProductCatalog {
     public static let macOS = [ProductRef("Apple", "macOS")]
 
     /// BSI advisories filed under the wrong vendor/product. They are skipped entirely.
-    public static let misattributedAdvisories: [String: String] = [
-        "WID-SEC-W-2025-2158": "CVE-2025-56449 betrifft „Obsidian Scheduler“ (Java-Jobplaner), nicht die Notiz-App Obsidian.",
-    ]
+    public static var misattributedAdvisories: [String: String] { [
+        "WID-SEC-W-2025-2158": tr("CVE-2025-56449 betrifft „Obsidian Scheduler“ (Java-Jobplaner), nicht die Notiz-App Obsidian.", "CVE-2025-56449 concerns “Obsidian Scheduler” (a Java job scheduler), not the Obsidian notes app."),
+    ] }
 
     /// Bundle identifier (exact) → NVD CPE product. Used for apps the BSI does not cover.
     /// Every entry was checked against the NVD CPE dictionary.

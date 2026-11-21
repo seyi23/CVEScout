@@ -19,40 +19,40 @@ public enum SecurityChecks {
     static func systemIntegrityProtection() async -> SecurityCheckResult {
         let title = "System Integrity Protection (SIP)"
         guard let r = await Shell.run("/usr/bin/csrutil", ["status"]) else {
-            return .init(id: "sip", title: title, status: .error, detail: "csrutil konnte nicht ausgeführt werden.")
+            return .init(id: "sip", title: title, status: .error, detail: tr("csrutil konnte nicht ausgeführt werden.", "Could not run csrutil."))
         }
         if r.output.contains("status: enabled") {
-            return .init(id: "sip", title: title, status: .pass, detail: "SIP ist aktiviert.")
+            return .init(id: "sip", title: title, status: .pass, detail: tr("SIP ist aktiviert.", "SIP is enabled."))
         }
         return .init(id: "sip", title: title, status: .fail, detail: r.output,
-                     recommendation: "SIP im Wiederherstellungsmodus mit `csrutil enable` wieder aktivieren.")
+                     recommendation: tr("SIP im Wiederherstellungsmodus mit `csrutil enable` wieder aktivieren.", "Re-enable SIP from Recovery mode with `csrutil enable`."))
     }
 
     static func gatekeeper() async -> SecurityCheckResult {
         let title = "Gatekeeper"
         guard let r = await Shell.run("/usr/sbin/spctl", ["--status"]) else {
-            return .init(id: "gatekeeper", title: title, status: .error, detail: "spctl konnte nicht ausgeführt werden.")
+            return .init(id: "gatekeeper", title: title, status: .error, detail: tr("spctl konnte nicht ausgeführt werden.", "Could not run spctl."))
         }
         if r.output.contains("assessments enabled") {
-            return .init(id: "gatekeeper", title: title, status: .pass, detail: "Gatekeeper prüft Programme vor dem Start.")
+            return .init(id: "gatekeeper", title: title, status: .pass, detail: tr("Gatekeeper prüft Programme vor dem Start.", "Gatekeeper checks apps before they launch."))
         }
         return .init(id: "gatekeeper", title: title, status: .fail, detail: r.output,
-                     recommendation: "Gatekeeper wieder aktivieren: `sudo spctl --global-enable`.")
+                     recommendation: tr("Gatekeeper wieder aktivieren: `sudo spctl --global-enable`.", "Re-enable Gatekeeper: `sudo spctl --global-enable`."))
     }
 
     static func fileVault() async -> SecurityCheckResult {
-        let title = "FileVault-Verschlüsselung"
+        let title = tr("FileVault-Verschlüsselung", "FileVault encryption")
         guard let r = await Shell.run("/usr/bin/fdesetup", ["status"]) else {
-            return .init(id: "filevault", title: title, status: .error, detail: "fdesetup konnte nicht ausgeführt werden.")
+            return .init(id: "filevault", title: title, status: .error, detail: tr("fdesetup konnte nicht ausgeführt werden.", "Could not run fdesetup."))
         }
         if r.output.contains("FileVault is On") {
-            return .init(id: "filevault", title: title, status: .pass, detail: "Das Startvolume ist verschlüsselt.")
+            return .init(id: "filevault", title: title, status: .pass, detail: tr("Das Startvolume ist verschlüsselt.", "The startup volume is encrypted."))
         }
         if r.output.contains("in progress") {
             return .init(id: "filevault", title: title, status: .warning, detail: r.output)
         }
         return .init(id: "filevault", title: title, status: .fail, detail: r.output,
-                     recommendation: "FileVault unter Systemeinstellungen › Datenschutz & Sicherheit aktivieren.")
+                     recommendation: tr("FileVault unter Systemeinstellungen › Datenschutz & Sicherheit aktivieren.", "Turn on FileVault in System Settings › Privacy & Security."))
     }
 
     static func firewall() async -> [SecurityCheckResult] {
@@ -63,48 +63,48 @@ public enum SecurityChecks {
 
         let fw: SecurityCheckResult
         if let global, global.output.contains("enabled") {
-            fw = .init(id: "firewall", title: "Firewall", status: .pass, detail: "Die Programm-Firewall ist aktiv.")
+            fw = .init(id: "firewall", title: "Firewall", status: .pass, detail: tr("Die Programm-Firewall ist aktiv.", "The application firewall is on."))
         } else if let global {
             fw = .init(id: "firewall", title: "Firewall", status: .warning, detail: global.output,
-                       recommendation: "Firewall unter Systemeinstellungen › Netzwerk › Firewall einschalten.")
+                       recommendation: tr("Firewall unter Systemeinstellungen › Netzwerk › Firewall einschalten.", "Turn on the firewall in System Settings › Network › Firewall."))
         } else {
-            fw = .init(id: "firewall", title: "Firewall", status: .error, detail: "socketfilterfw konnte nicht ausgeführt werden.")
+            fw = .init(id: "firewall", title: "Firewall", status: .error, detail: tr("socketfilterfw konnte nicht ausgeführt werden.", "Could not run socketfilterfw."))
         }
 
         let st: SecurityCheckResult
         if let stealth, stealth.output.localizedCaseInsensitiveContains("stealth mode enabled")
             || stealth.output.contains("is on") {
-            st = .init(id: "stealth", title: "Tarnmodus (Stealth Mode)", status: .pass, detail: "Der Mac antwortet nicht auf Ping/Port-Scans.")
+            st = .init(id: "stealth", title: tr("Tarnmodus (Stealth Mode)", "Stealth mode"), status: .pass, detail: tr("Der Mac antwortet nicht auf Ping/Port-Scans.", "The Mac does not respond to ping or port scans."))
         } else {
-            st = .init(id: "stealth", title: "Tarnmodus (Stealth Mode)", status: .info,
-                       detail: stealth?.output ?? "Status unbekannt.",
-                       recommendation: "Optional: Tarnmodus in den Firewall-Optionen aktivieren.")
+            st = .init(id: "stealth", title: tr("Tarnmodus (Stealth Mode)", "Stealth mode"), status: .info,
+                       detail: stealth?.output ?? tr("Status unbekannt.", "Status unknown."),
+                       recommendation: tr("Optional: Tarnmodus in den Firewall-Optionen aktivieren.", "Optional: turn on stealth mode in the firewall options."))
         }
         return [fw, st]
     }
 
     /// Services listening on non-loopback addresses (Remote Login, Screen Sharing, File Sharing …).
     static func listeningServices() async -> SecurityCheckResult {
-        let title = "Offene Netzwerkdienste"
+        let title = tr("Offene Netzwerkdienste", "Exposed network services")
         guard let r = await Shell.run("/usr/sbin/netstat", ["-an", "-p", "tcp"]) else {
-            return .init(id: "ports", title: title, status: .error, detail: "netstat konnte nicht ausgeführt werden.")
+            return .init(id: "ports", title: title, status: .error, detail: tr("netstat konnte nicht ausgeführt werden.", "Could not run netstat."))
         }
         let exposed = parseListeningPorts(r.output)
         let risky: [Int: String] = [
-            22: "SSH / Entfernte Anmeldung", 5900: "Bildschirmfreigabe (VNC)", 3283: "Apple Remote Desktop",
-            445: "Dateifreigabe (SMB)", 548: "Dateifreigabe (AFP)", 21: "FTP", 23: "Telnet",
+            22: tr("SSH / Entfernte Anmeldung", "SSH / Remote Login"), 5900: tr("Bildschirmfreigabe (VNC)", "Screen Sharing (VNC)"), 3283: "Apple Remote Desktop",
+            445: tr("Dateifreigabe (SMB)", "File Sharing (SMB)"), 548: tr("Dateifreigabe (AFP)", "File Sharing (AFP)"), 21: "FTP", 23: "Telnet",
         ]
         let riskyOpen = exposed.filter { risky[$0] != nil }.sorted()
         let all = exposed.sorted().map(String.init).joined(separator: ", ")
         if riskyOpen.isEmpty {
             return .init(id: "ports", title: title, status: exposed.isEmpty ? .pass : .info,
-                         detail: exposed.isEmpty ? "Keine Dienste lauschen im Netzwerk."
-                                                 : "Im Netzwerk erreichbare Ports: \(all)")
+                         detail: exposed.isEmpty ? tr("Keine Dienste lauschen im Netzwerk.", "No services are listening on the network.")
+                                                 : tr("Im Netzwerk erreichbare Ports: \(all)", "Ports reachable from the network: \(all)"))
         }
         let names = riskyOpen.map { "\($0) (\(risky[$0]!))" }.joined(separator: ", ")
         return .init(id: "ports", title: title, status: .warning,
-                     detail: "Fernzugriffsdienste erreichbar: \(names). Alle Ports: \(all)",
-                     recommendation: "Nicht benötigte Freigaben unter Systemeinstellungen › Allgemein › Teilen deaktivieren.")
+                     detail: tr("Fernzugriffsdienste erreichbar: \(names). Alle Ports: \(all)", "Remote access services reachable: \(names). All ports: \(all)"),
+                     recommendation: tr("Nicht benötigte Freigaben unter Systemeinstellungen › Allgemein › Teilen deaktivieren.", "Turn off unneeded sharing services in System Settings › General › Sharing."))
     }
 
     /// Parses `netstat -an -p tcp` output and returns ports in LISTEN state bound to non-loopback addresses.
@@ -124,15 +124,15 @@ public enum SecurityChecks {
 
     /// Asks Apple's update server for pending updates (`softwareupdate --list`, no admin rights needed).
     static func pendingUpdates() async -> SecurityCheckResult {
-        let title = "Ausstehende Apple-Updates"
+        let title = tr("Ausstehende Apple-Updates", "Pending Apple updates")
         guard let r = await Shell.run("/usr/sbin/softwareupdate", ["--list"], timeout: 120), !r.timedOut else {
             return .init(id: "pending-updates", title: title, status: .error,
-                         detail: "softwareupdate hat nicht rechtzeitig geantwortet (offline?).")
+                         detail: tr("softwareupdate hat nicht rechtzeitig geantwortet (offline?).", "softwareupdate did not respond in time (offline?)."))
         }
         let updates = parsePendingUpdates(r.output)
         if updates.isEmpty {
             if r.output.contains("No new software available") {
-                return .init(id: "pending-updates", title: title, status: .pass, detail: "Keine ausstehenden Updates.")
+                return .init(id: "pending-updates", title: title, status: .pass, detail: tr("Keine ausstehenden Updates.", "No pending updates."))
             }
             return .init(id: "pending-updates", title: title, status: .info, detail: r.output)
         }
@@ -142,7 +142,7 @@ public enum SecurityChecks {
         }
         return .init(id: "pending-updates", title: title, status: critical ? .fail : .warning,
                      detail: updates.joined(separator: "; "),
-                     recommendation: "Updates unter Systemeinstellungen › Allgemein › Softwareupdate installieren.")
+                     recommendation: tr("Updates unter Systemeinstellungen › Allgemein › Softwareupdate installieren.", "Install the updates in System Settings › General › Software Update."))
     }
 
     /// Extracts "Title (Version)" for each pending update from `softwareupdate --list` output.
@@ -162,70 +162,72 @@ public enum SecurityChecks {
     }
 
     static func automaticUpdates() -> SecurityCheckResult {
-        let title = "Automatische Updates"
+        let title = tr("Automatische Updates", "Automatic updates")
         let prefs = NSDictionary(contentsOfFile: "/Library/Preferences/com.apple.SoftwareUpdate.plist") as? [String: Any] ?? [:]
         let keys: [(String, String)] = [
-            ("AutomaticCheckEnabled", "Nach Updates suchen"),
-            ("AutomaticDownload", "Updates laden"),
-            ("CriticalUpdateInstall", "Sicherheitsmaßnahmen und Systemdateien installieren"),
-            ("ConfigDataInstall", "XProtect-/Konfigurationsdaten installieren"),
-            ("AutomaticallyInstallMacOSUpdates", "macOS-Updates installieren"),
+            ("AutomaticCheckEnabled", tr("Nach Updates suchen", "Check for updates")),
+            ("AutomaticDownload", tr("Updates laden", "Download updates")),
+            ("CriticalUpdateInstall", tr("Sicherheitsmaßnahmen und Systemdateien installieren", "Install Security Responses and system files")),
+            ("ConfigDataInstall", tr("XProtect-/Konfigurationsdaten installieren", "Install XProtect/configuration data")),
+            ("AutomaticallyInstallMacOSUpdates", tr("macOS-Updates installieren", "Install macOS updates")),
         ]
         var off: [String] = []
+        var securityOff = false
         for (key, label) in keys {
-            if let value = prefs[key] as? Bool, value == false { off.append(label) }
-            if let value = prefs[key] as? Int, value == 0 { off.append(label) }
+            let disabled = (prefs[key] as? Bool) == false || (prefs[key] as? Int) == 0
+            guard disabled else { continue }
+            off.append(label)
+            if key == "CriticalUpdateInstall" || key == "ConfigDataInstall" { securityOff = true }
         }
-        let securityOff = off.contains { $0.contains("Sicherheit") || $0.contains("XProtect") }
         if off.isEmpty {
             return .init(id: "updates", title: title, status: .pass,
-                         detail: "Keine automatische Update-Option ist explizit deaktiviert.")
+                         detail: tr("Keine automatische Update-Option ist explizit deaktiviert.", "No automatic update option is explicitly turned off."))
         }
         return .init(id: "updates", title: title, status: securityOff ? .fail : .warning,
-                     detail: "Deaktiviert: " + off.joined(separator: ", "),
-                     recommendation: "Unter Systemeinstellungen › Allgemein › Softwareupdate › Automatische Updates alle Optionen einschalten.")
+                     detail: tr("Deaktiviert: ", "Turned off: ") + off.joined(separator: ", "),
+                     recommendation: tr("Unter Systemeinstellungen › Allgemein › Softwareupdate › Automatische Updates alle Optionen einschalten.", "Turn on all options in System Settings › General › Software Update › Automatic Updates."))
     }
 
     static func xprotect() -> SecurityCheckResult {
-        let title = "XProtect-Malware-Signaturen"
+        let title = tr("XProtect-Malware-Signaturen", "XProtect malware signatures")
         let path = "/Library/Apple/System/Library/CoreServices/XProtect.bundle"
         let plist = NSDictionary(contentsOfFile: path + "/Contents/Info.plist") as? [String: Any]
         guard let version = plist?["CFBundleShortVersionString"] as? String else {
-            return .init(id: "xprotect", title: title, status: .info, detail: "XProtect-Version nicht lesbar.")
+            return .init(id: "xprotect", title: title, status: .info, detail: tr("XProtect-Version nicht lesbar.", "Could not read the XProtect version."))
         }
         let modified = (try? FileManager.default.attributesOfItem(atPath: path + "/Contents/Info.plist"))?[.modificationDate] as? Date
         guard let modified else {
             return .init(id: "xprotect", title: title, status: .info, detail: "Version \(version)")
         }
         let days = Int(Date().timeIntervalSince(modified) / 86_400)
-        let date = modified.formatted(date: .abbreviated, time: .omitted)
+        let date = modified.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted).locale(Language.current.locale))
         if days > 90 {
             return .init(id: "xprotect", title: title, status: .warning,
-                         detail: "Version \(version), zuletzt aktualisiert am \(date) (vor \(days) Tagen).",
-                         recommendation: "Automatische Installation von Sicherheitsdaten aktivieren und nach Updates suchen.")
+                         detail: tr("Version \(version), zuletzt aktualisiert am \(date) (vor \(days) Tagen).", "Version \(version), last updated on \(date) (\(days) days ago)."),
+                         recommendation: tr("Automatische Installation von Sicherheitsdaten aktivieren und nach Updates suchen.", "Turn on automatic installation of security data and check for updates."))
         }
         return .init(id: "xprotect", title: title, status: .pass,
-                     detail: "Version \(version), aktualisiert am \(date).")
+                     detail: tr("Version \(version), aktualisiert am \(date).", "Version \(version), updated on \(date)."))
     }
 
     static func automaticLogin() -> SecurityCheckResult {
-        let title = "Automatische Anmeldung"
+        let title = tr("Automatische Anmeldung", "Automatic login")
         let prefs = NSDictionary(contentsOfFile: "/Library/Preferences/com.apple.loginwindow.plist") as? [String: Any]
         if let user = prefs?["autoLoginUser"] as? String, !user.isEmpty {
             return .init(id: "autologin", title: title, status: .fail,
-                         detail: "Benutzer wird ohne Passwort angemeldet.",
-                         recommendation: "Unter Systemeinstellungen › Benutzer:innen & Gruppen die automatische Anmeldung ausschalten.")
+                         detail: tr("Benutzer wird ohne Passwort angemeldet.", "A user is logged in without a password."),
+                         recommendation: tr("Unter Systemeinstellungen › Benutzer:innen & Gruppen die automatische Anmeldung ausschalten.", "Turn off automatic login in System Settings › Users & Groups."))
         }
-        return .init(id: "autologin", title: title, status: .pass, detail: "Automatische Anmeldung ist aus.")
+        return .init(id: "autologin", title: title, status: .pass, detail: tr("Automatische Anmeldung ist aus.", "Automatic login is off."))
     }
 
     static func guestAccount() -> SecurityCheckResult {
-        let title = "Gastbenutzer"
+        let title = tr("Gastbenutzer", "Guest user")
         let prefs = NSDictionary(contentsOfFile: "/Library/Preferences/com.apple.loginwindow.plist") as? [String: Any]
         if (prefs?["GuestEnabled"] as? Bool) == true {
-            return .init(id: "guest", title: title, status: .warning, detail: "Der Gastbenutzer ist aktiviert.",
-                         recommendation: "Gastbenutzer unter Systemeinstellungen › Benutzer:innen & Gruppen deaktivieren.")
+            return .init(id: "guest", title: title, status: .warning, detail: tr("Der Gastbenutzer ist aktiviert.", "The guest user is enabled."),
+                         recommendation: tr("Gastbenutzer unter Systemeinstellungen › Benutzer:innen & Gruppen deaktivieren.", "Turn off the guest user in System Settings › Users & Groups."))
         }
-        return .init(id: "guest", title: title, status: .pass, detail: "Gastbenutzer ist deaktiviert.")
+        return .init(id: "guest", title: title, status: .pass, detail: tr("Gastbenutzer ist deaktiviert.", "The guest user is disabled."))
     }
 }

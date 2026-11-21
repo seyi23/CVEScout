@@ -1,6 +1,11 @@
 # Changelog
 
-## Unveröffentlicht
+## 0.4.0 – 2026-11-21
+
+- **Englische Oberfläche:** App, Menüleiste, Mitteilungen, CLI und Berichte gibt es auf Deutsch und Englisch.
+  Die Sprache folgt dem System (andere Sprachen → Englisch) und lässt sich in den Einstellungen umstellen
+  (mit „Jetzt neu starten“) bzw. per `--lang de|en` oder `CVESCOUT_LANG`. Datumsangaben und Systemmenüs folgen
+  der gewählten Sprache. Titel und Zusammenfassungen der BSI-Hinweise bleiben deutsch (Originaldaten).
 
 - MIT-Lizenz, `NOTICE.md` mit Datenquellen, Datenschutzangaben und dem von der NVD geforderten Hinweis
   (auch in App, CLI-Hilfe und Markdown-Bericht).

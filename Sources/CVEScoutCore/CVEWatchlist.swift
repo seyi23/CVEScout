@@ -47,10 +47,10 @@ public enum CVEStatus: String, Codable, Sendable, CaseIterable {
 
     public var label: String {
         switch self {
-        case .affected: "Betroffen"
-        case .patched: "Nicht betroffen"
-        case .notInstalled: "Produkt nicht installiert"
-        case .unknown: "Keine Daten"
+        case .affected: tr("Betroffen", "Affected")
+        case .patched: tr("Nicht betroffen", "Not affected")
+        case .notInstalled: tr("Produkt nicht installiert", "Product not installed")
+        case .unknown: tr("Keine Daten", "No data")
         }
     }
 }
@@ -100,7 +100,7 @@ extension CVEWatchlist {
                     for ref in mapping.refs where !doc.leaves(for: ref).isEmpty {
                         let label = "\(mapping.item.name) \(mapping.item.version)"
                         if let hit = doc.evaluate(ref: ref, version: version, cve: cve) {
-                            affected.append(hit.uncertainReason == nil ? label : label + " (unsicher)")
+                            affected.append(hit.uncertainReason == nil ? label : label + tr(" (unsicher)", " (uncertain)"))
                             ranges.append(hit.leaf.fullName)
                         } else {
                             checked.append(label)

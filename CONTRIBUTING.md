@@ -36,7 +36,7 @@ WID-SEC-W-2025-2158, which concerns *Obsidian Scheduler*, not the Obsidian notes
 - Keep changes focused; add or update tests in `Tests/CVEScoutCoreTests` for matching logic.
 - No network access in tests – use JSON fixtures.
 - Update `CHANGELOG.md` under *Unveröffentlicht* (unreleased).
-- User-facing strings are currently German; English localization is planned.
+- User-facing strings are bilingual: wrap them in `tr("Deutsch", "English")` (see `Localization.swift`).
 
 ## Principles
 

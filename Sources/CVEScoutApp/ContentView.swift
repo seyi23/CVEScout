@@ -8,11 +8,11 @@ enum SidebarItem: String, Hashable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .overview: "Übersicht"
-        case .findings: "Schwachstellen"
-        case .cveList: "CVE-Liste"
+        case .overview: tr("Übersicht", "Overview")
+        case .findings: tr("Schwachstellen", "Vulnerabilities")
+        case .cveList: tr("CVE-Liste", "CVE list")
         case .software: "Software"
-        case .checks: "Systemprüfungen"
+        case .checks: tr("Systemprüfungen", "System checks")
         }
     }
 
@@ -66,16 +66,16 @@ struct ContentView: View {
                 Button {
                     model.importWatchlistWithPanel()
                 } label: {
-                    Label("CVE-Liste importieren", systemImage: "square.and.arrow.down")
+                    Label(tr("CVE-Liste importieren", "Import CVE list"), systemImage: "square.and.arrow.down")
                 }
-                .help("Textdatei mit einer CVE pro Zeile importieren und prüfen")
+                .help(tr("Textdatei mit einer CVE pro Zeile importieren und prüfen", "Import and check a text file with one CVE per line"))
                 Button {
                     model.startScan()
                 } label: {
-                    Label("Scan starten", systemImage: "arrow.clockwise")
+                    Label(tr("Scan starten", "Start scan"), systemImage: "arrow.clockwise")
                 }
                 .disabled(model.isScanning)
-                .help("Software und Systemeinstellungen prüfen (⌘R)")
+                .help(tr("Software und Systemeinstellungen prüfen (⌘R)", "Check software and system settings (⌘R)"))
             }
         }
         .onDrop(of: [.fileURL], isTargeted: $dropTargeted) { providers in
@@ -89,7 +89,7 @@ struct ContentView: View {
             }
             return true
         }
-        .alert("Hinweis", isPresented: Binding(
+        .alert(tr("Hinweis", "Notice"), isPresented: Binding(
             get: { model.errorMessage != nil },
             set: { if !$0 { model.errorMessage = nil } }
         )) {
@@ -135,31 +135,31 @@ struct SourceBadge: View {
             .padding(.vertical, 1)
             .overlay(Capsule().strokeBorder(.secondary.opacity(0.6)))
             .foregroundStyle(.secondary)
-            .help(source == .bsi ? "Quelle: BSI WID/CERT-Bund" : "Quelle: NIST National Vulnerability Database")
+            .help(source == .bsi ? tr("Quelle: BSI WID/CERT-Bund", "Source: BSI WID/CERT-Bund") : tr("Quelle: NIST National Vulnerability Database", "Source: NIST National Vulnerability Database"))
     }
 }
 
 struct UncertainBadge: View {
     var body: some View {
-        Label("unsicher", systemImage: "questionmark.diamond")
+        Label(tr("unsicher", "uncertain"), systemImage: "questionmark.diamond")
             .font(.caption2.weight(.semibold))
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(Color.gray.opacity(0.2), in: Capsule())
             .foregroundStyle(.secondary)
-            .help("Formal zutreffend, aber unplausibel – bitte manuell prüfen")
+            .help(tr("Formal zutreffend, aber unplausibel – bitte manuell prüfen", "Formally matching but implausible – please check manually"))
     }
 }
 
 struct KEVBadge: View {
     var body: some View {
-        Label("aktiv ausgenutzt", systemImage: "flame.fill")
+        Label(tr("aktiv ausgenutzt", "actively exploited"), systemImage: "flame.fill")
             .font(.caption2.weight(.bold))
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(Color.red.opacity(0.18), in: Capsule())
             .foregroundStyle(.red)
-            .help("In CISA Known Exploited Vulnerabilities gelistet")
+            .help(tr("In CISA Known Exploited Vulnerabilities gelistet", "Listed in CISA Known Exploited Vulnerabilities"))
     }
 }
 
@@ -222,11 +222,11 @@ struct EmptyReportView: View {
 
     var body: some View {
         ContentUnavailableView {
-            Label("Noch kein Scan", systemImage: "shield.lefthalf.filled")
+            Label(tr("Noch kein Scan", "No scan yet"), systemImage: "shield.lefthalf.filled")
         } description: {
-            Text("CVEScout gleicht installierte Software mit den Sicherheitshinweisen des BSI und der NVD ab und prüft die Sicherheitseinstellungen dieses Macs. Es wird nichts verändert und keine Daten über dein System werden gesendet.")
+            Text(tr("CVEScout gleicht installierte Software mit den Sicherheitshinweisen des BSI und der NVD ab und prüft die Sicherheitseinstellungen dieses Macs. Es wird nichts verändert und keine Daten über dein System werden gesendet.", "CVEScout matches the installed software against security advisories from the BSI and the NVD and checks the security settings of this Mac. Nothing is changed and no data about your system is sent."))
         } actions: {
-            Button("Scan starten") { model.startScan() }
+            Button(tr("Scan starten", "Start scan")) { model.startScan() }
                 .buttonStyle(.borderedProminent)
                 .disabled(model.isScanning)
         }

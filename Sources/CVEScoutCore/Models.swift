@@ -9,8 +9,8 @@ public enum SoftwareSource: String, Codable, Sendable, CaseIterable {
 
     public var label: String {
         switch self {
-        case .system: "Betriebssystem"
-        case .application: "Programm"
+        case .system: tr("Betriebssystem", "Operating system")
+        case .application: tr("Programm", "Application")
         case .homebrew: "Homebrew"
         }
     }
@@ -53,11 +53,11 @@ public enum Severity: Int, Codable, Sendable, Comparable, CaseIterable {
 
     public var label: String {
         switch self {
-        case .unknown: "unbekannt"
-        case .low: "niedrig"
-        case .medium: "mittel"
-        case .high: "hoch"
-        case .critical: "kritisch"
+        case .unknown: tr("unbekannt", "unknown")
+        case .low: tr("niedrig", "low")
+        case .medium: tr("mittel", "medium")
+        case .high: tr("hoch", "high")
+        case .critical: tr("kritisch", "critical")
         }
     }
 
@@ -114,9 +114,9 @@ public enum MatchConfidence: String, Codable, Sendable {
 
     public var label: String {
         switch self {
-        case .curated: "gesichert"
-        case .heuristic: "heuristisch"
-        case .cpe: "gesichert (NVD/CPE)"
+        case .curated: tr("gesichert", "verified")
+        case .heuristic: tr("heuristisch", "heuristic")
+        case .cpe: tr("gesichert (NVD/CPE)", "verified (NVD/CPE)")
         }
     }
 }
@@ -167,10 +167,10 @@ public enum CheckStatus: String, Codable, Sendable {
     public var label: String {
         switch self {
         case .pass: "OK"
-        case .warning: "Warnung"
-        case .fail: "Kritisch"
+        case .warning: tr("Warnung", "Warning")
+        case .fail: tr("Kritisch", "Critical")
         case .info: "Info"
-        case .error: "Fehler"
+        case .error: tr("Fehler", "Error")
         }
     }
 }

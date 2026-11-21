@@ -36,7 +36,7 @@ struct MenuBarView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(model.statusHeadline).font(.headline)
                 if let date = model.report?.date {
-                    Text("Letzter Scan \(date.formatted(.relative(presentation: .named)))")
+                    Text(tr("Letzter Scan \(date.formatted(Date.RelativeFormatStyle(presentation: .named).locale(Language.current.locale)))", "Last scan \(date.formatted(Date.RelativeFormatStyle(presentation: .named).locale(Language.current.locale)))"))
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -46,12 +46,12 @@ struct MenuBarView: View {
 
     private func counts(_ report: ScanReport) -> some View {
         HStack(spacing: 8) {
-            CountChip(value: report.vulnerableSoftwareCount, label: "Programme",
+            CountChip(value: report.vulnerableSoftwareCount, label: tr("Programme", "Apps"),
                       tint: report.vulnerableSoftwareCount > 0 ? .orange : .green)
             CountChip(value: report.exploitedCount, label: "ausgenutzt",
                       tint: report.exploitedCount > 0 ? .red : .green)
             let problems = report.checks.filter { $0.status == .fail || $0.status == .warning }.count
-            CountChip(value: problems, label: "Einstellungen", tint: problems > 0 ? .orange : .green)
+            CountChip(value: problems, label: tr("Einstellungen", "Settings"), tint: problems > 0 ? .orange : .green)
         }
     }
 
@@ -81,40 +81,40 @@ struct MenuBarView: View {
                     .buttonStyle(.plain)
                 }
                 if byProgram.count > 5 {
-                    Text("+ \(byProgram.count - 5) weitere").font(.caption).foregroundStyle(.secondary)
+                    Text(tr("+ \(byProgram.count - 5) weitere", "+ \(byProgram.count - 5) more")).font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
         if let diff = model.lastDiff, !diff.resolvedFindings.isEmpty {
-            Label("\(diff.resolvedFindings.count) Hinweise seit dem letzten Scan erledigt", systemImage: "checkmark.circle")
+            Label(tr("\(diff.resolvedFindings.count) Hinweise seit dem letzten Scan erledigt", "\(diff.resolvedFindings.count) findings resolved since the last scan"), systemImage: "checkmark.circle")
                 .font(.caption).foregroundStyle(.green)
         }
     }
 
     private var actions: some View {
         VStack(alignment: .leading, spacing: 2) {
-            MenuRow(title: "Jetzt scannen", systemImage: "arrow.clockwise") { model.startScan() }
+            MenuRow(title: tr("Jetzt scannen", "Scan now"), systemImage: "arrow.clockwise") { model.startScan() }
                 .disabled(model.isScanning)
-            MenuRow(title: "CVEScout öffnen", systemImage: "macwindow") { open(nil) }
-            MenuRow(title: "CVE-Liste importieren …", systemImage: "square.and.arrow.down") {
+            MenuRow(title: tr("CVEScout öffnen", "Open CVEScout"), systemImage: "macwindow") { open(nil) }
+            MenuRow(title: tr("CVE-Liste importieren …", "Import CVE list …"), systemImage: "square.and.arrow.down") {
                 NSApp.activate(ignoringOtherApps: true)
                 model.importWatchlistWithPanel()
                 if model.watchlist != nil { open(.cveList) }
             }
             SettingsLink {
-                Label("Einstellungen …", systemImage: "gearshape").frame(maxWidth: .infinity, alignment: .leading)
+                Label(tr("Einstellungen …", "Settings …"), systemImage: "gearshape").frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(MenuRowStyle())
-            MenuRow(title: "CVEScout beenden", systemImage: "power") { NSApp.terminate(nil) }
+            MenuRow(title: tr("CVEScout beenden", "Quit CVEScout"), systemImage: "power") { NSApp.terminate(nil) }
         }
     }
 
     private var footer: some View {
         Group {
             if let next = model.nextAutomaticScan, model.autoScanInterval != .off {
-                Text("Automatischer Scan: \(model.autoScanInterval.label.lowercased()) · nächster \(next.formatted(.relative(presentation: .named)))")
+                Text(tr("Automatischer Scan: \(model.autoScanInterval.label.lowercased()) · nächster \(next.formatted(Date.RelativeFormatStyle(presentation: .named).locale(Language.current.locale)))", "Automatic scan: \(model.autoScanInterval.label.lowercased()) · next \(next.formatted(Date.RelativeFormatStyle(presentation: .named).locale(Language.current.locale)))"))
             } else {
-                Text("Automatischer Scan ist ausgeschaltet")
+                Text(tr("Automatischer Scan ist ausgeschaltet", "Automatic scanning is off"))
             }
         }
         .font(.caption2)

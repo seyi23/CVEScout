@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION="${VERSION:-0.3.0}"
+VERSION="${VERSION:-0.4.0}"
 # Reverse-DNS identifier; override for forks: BUNDLE_ID=io.github.<user>.cvescout ./scripts/build-app.sh
 BUNDLE_ID="${BUNDLE_ID:-io.github.seyi23.cvescout}"
 APP="build/CVEScout.app"
@@ -13,7 +13,7 @@ swift build -c release --product cvescout
 BIN="$(swift build -c release --show-bin-path)"
 
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/de.lproj" "$APP/Contents/Resources/en.lproj"
 cp "$BIN/CVEScoutApp" "$APP/Contents/MacOS/CVEScout"
 cp "$BIN/cvescout" "$APP/Contents/Resources/cvescout"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"   # regenerate: see scripts/make-icon.swift
@@ -28,6 +28,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
     <key>CFBundleExecutable</key><string>CVEScout</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleLocalizations</key><array><string>de</string><string>en</string></array>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>${VERSION}</string>
     <key>CFBundleVersion</key><string>${VERSION}</string>

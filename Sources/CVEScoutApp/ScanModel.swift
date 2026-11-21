@@ -29,6 +29,22 @@ final class ScanModel {
     var useNVD: Bool { didSet { defaults.set(useNVD, forKey: "useNVD") } }
     var nvdAPIKey: String { didSet { Keychain.write("nvd-api-key", value: nvdAPIKey) } }
 
+    /// "system", "de" or "en". Applied at the next launch (see `Language.current`).
+    var appLanguage: String {
+        didSet {
+            if appLanguage == "system" {
+                defaults.removeObject(forKey: "appLanguage")
+                defaults.removeObject(forKey: "AppleLanguages")
+            } else {
+                defaults.set(appLanguage, forKey: "appLanguage")
+                // Makes AppKit (menus, open/save panels) use the same language as CVEScout.
+                defaults.set([appLanguage], forKey: "AppleLanguages")
+            }
+        }
+    }
+    private let launchLanguageSetting: String
+    var languageChangePending: Bool { appLanguage != launchLanguageSetting }
+
     // Background operation
     var autoScanInterval: AutoScanInterval {
         didSet { defaults.set(autoScanInterval.rawValue, forKey: "autoScanInterval") }
@@ -51,7 +67,7 @@ final class ScanModel {
             do {
                 if launchAtLogin { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
             } catch {
-                errorMessage = "Autostart konnte nicht geändert werden: \(error.localizedDescription)"
+                errorMessage = tr("Autostart konnte nicht geändert werden: \(error.localizedDescription)", "Could not change launch at login: \(error.localizedDescription)")
                 launchAtLogin = SMAppService.mainApp.status == .enabled
             }
         }
@@ -70,6 +86,9 @@ final class ScanModel {
         includeApplications = defaults.bool(forKey: "includeApplications")
         useNVD = defaults.bool(forKey: "useNVD")
         nvdAPIKey = Keychain.read("nvd-api-key") ?? ""
+        let language = defaults.string(forKey: "appLanguage") ?? "system"
+        appLanguage = language
+        launchLanguageSetting = language
         autoScanInterval = AutoScanInterval(rawValue: defaults.integer(forKey: "autoScanInterval")) ?? .daily
         notificationsEnabled = defaults.bool(forKey: "notificationsEnabled")
         showDockIcon = defaults.bool(forKey: "showDockIcon")
@@ -129,13 +148,22 @@ final class ScanModel {
     }
 
     var statusHeadline: String {
-        if isScanning { return "Scan läuft …" }
-        guard let report else { return "Noch kein Scan" }
-        if report.exploitedCount > 0 { return "Aktiv ausgenutzte Lücke!" }
+        if isScanning { return tr("Scan läuft …", "Scanning …") }
+        guard let report else { return tr("Noch kein Scan", "No scan yet") }
+        if report.exploitedCount > 0 { return tr("Aktiv ausgenutzte Lücke!", "Actively exploited vulnerability!") }
         let n = report.vulnerableSoftwareCount
-        if n > 0 { return n == 1 ? "1 Programm verwundbar" : "\(n) Programme verwundbar" }
-        if report.checks.contains(where: { $0.status == .fail }) { return "Einstellung kritisch" }
-        return "Keine bekannten Lücken"
+        if n > 0 { return n == 1 ? tr("1 Programm verwundbar", "1 app vulnerable") : tr("\(n) Programme verwundbar", "\(n) apps vulnerable") }
+        if report.checks.contains(where: { $0.status == .fail }) { return tr("Einstellung kritisch", "Critical setting") }
+        return tr("Keine bekannten Lücken", "No known vulnerabilities")
+    }
+
+    /// Quits and reopens the app (used after changing the language).
+    func relaunch() {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "sleep 1; /usr/bin/open \"$0\"", Bundle.main.bundleURL.path]
+        try? process.run()
+        NSApp.terminate(nil)
     }
 
     // MARK: Window & Dock
@@ -192,7 +220,7 @@ final class ScanModel {
                 if automatic { self.notify(diff) }
             } catch {
                 // Automatic scans fail silently (e.g. offline); the scheduler retries later.
-                if !automatic { self.errorMessage = "Scan fehlgeschlagen: \(error.localizedDescription)" }
+                if !automatic { self.errorMessage = tr("Scan fehlgeschlagen: \(error.localizedDescription)", "Scan failed: \(error.localizedDescription)") }
             }
             self.isScanning = false
             self.phase = nil
@@ -207,7 +235,7 @@ final class ScanModel {
         do {
             let list = try CVEWatchlist.load(from: url)
             guard !list.cves.isEmpty else {
-                errorMessage = "In „\(url.lastPathComponent)“ wurde keine CVE-ID gefunden (erwartet: eine CVE pro Zeile)."
+                errorMessage = tr("In „\(url.lastPathComponent)“ wurde keine CVE-ID gefunden (erwartet: eine CVE pro Zeile).", "No CVE id found in “\(url.lastPathComponent)” (expected: one CVE per line).")
                 return
             }
             watchlist = list
@@ -215,18 +243,18 @@ final class ScanModel {
             defaults.set(list.cves, forKey: "watchlist")
             defaults.set(url.lastPathComponent, forKey: "watchlistFileName")
             if !list.invalidLines.isEmpty {
-                errorMessage = "\(list.invalidLines.count) Zeilen ohne CVE-ID wurden ignoriert."
+                errorMessage = tr("\(list.invalidLines.count) Zeilen ohne CVE-ID wurden ignoriert.", "\(list.invalidLines.count) lines without a CVE id were ignored.")
             }
             startScan()
         } catch {
-            errorMessage = "Datei konnte nicht gelesen werden: \(error.localizedDescription)"
+            errorMessage = tr("Datei konnte nicht gelesen werden: \(error.localizedDescription)", "Could not read the file: \(error.localizedDescription)")
         }
     }
 
     func importWatchlistWithPanel() {
         let panel = NSOpenPanel()
-        panel.title = "CVE-Liste importieren"
-        panel.message = "Textdatei mit einer CVE-ID pro Zeile auswählen"
+        panel.title = tr("CVE-Liste importieren", "Import CVE list")
+        panel.message = tr("Textdatei mit einer CVE-ID pro Zeile auswählen", "Choose a text file with one CVE id per line")
         panel.allowedContentTypes = [.plainText, .text]
         panel.allowsMultipleSelection = false
         if panel.runModal() == .OK, let url = panel.url { importWatchlist(from: url) }
@@ -245,14 +273,14 @@ final class ScanModel {
         guard let report else { return }
         let panel = NSSavePanel()
         let stamp = report.date.formatted(.iso8601.year().month().day())
-        panel.nameFieldStringValue = "CVEScout-Bericht-\(stamp).\(markdown ? "md" : "json")"
+        panel.nameFieldStringValue = tr("CVEScout-Bericht", "CVEScout-Report") + "-\(stamp)." + (markdown ? "md" : "json")
         panel.allowedContentTypes = [markdown ? UTType(filenameExtension: "md") ?? .plainText : .json]
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
             let data = markdown ? Data(ReportExport.markdown(report).utf8) : try ReportExport.json(report)
             try data.write(to: url, options: .atomic)
         } catch {
-            errorMessage = "Export fehlgeschlagen: \(error.localizedDescription)"
+            errorMessage = tr("Export fehlgeschlagen: \(error.localizedDescription)", "Export failed: \(error.localizedDescription)")
         }
     }
 

@@ -12,20 +12,21 @@ struct CVEScoutApp: App {
         Window("CVEScout", id: MainWindow.id) {
             ContentView()
                 .environment(model)
+                .environment(\.locale, Language.current.locale)
                 .frame(minWidth: 960, minHeight: 600)
         }
         .commands {
             CommandGroup(after: .newItem) {
-                Button("Scan starten") { model.startScan() }
+                Button(tr("Scan starten", "Start scan")) { model.startScan() }
                     .keyboardShortcut("r")
                     .disabled(model.isScanning)
-                Button("CVE-Liste importieren …") { model.importWatchlistWithPanel() }
+                Button(tr("CVE-Liste importieren …", "Import CVE list …")) { model.importWatchlistWithPanel() }
                     .keyboardShortcut("i")
                 Divider()
-                Button("Bericht als Markdown exportieren …") { model.export(markdown: true) }
+                Button(tr("Bericht als Markdown exportieren …", "Export report as Markdown …")) { model.export(markdown: true) }
                     .keyboardShortcut("e")
                     .disabled(model.report == nil)
-                Button("Bericht als JSON exportieren …") { model.export(markdown: false) }
+                Button(tr("Bericht als JSON exportieren …", "Export report as JSON …")) { model.export(markdown: false) }
                     .disabled(model.report == nil)
             }
         }
@@ -33,6 +34,7 @@ struct CVEScoutApp: App {
         MenuBarExtra {
             MenuBarView()
                 .environment(model)
+                .environment(\.locale, Language.current.locale)
         } label: {
             Image(systemName: model.statusSymbol)
                 .accessibilityLabel("CVEScout: \(model.statusHeadline)")
@@ -42,6 +44,7 @@ struct CVEScoutApp: App {
         Settings {
             SettingsView()
                 .environment(model)
+                .environment(\.locale, Language.current.locale)
         }
     }
 }

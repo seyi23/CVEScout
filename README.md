@@ -15,7 +15,7 @@ CVEScout inventories the software installed on your Mac, matches the versions ag
 advisories and checks the most important macOS security settings. Vulnerabilities that are actively exploited
 in the wild are highlighted using the CISA *Known Exploited Vulnerabilities* catalog.
 
-> ⚠️ **Status: 0.3.0 (pre-release).** The user interface is currently in German; English is planned.
+> ⚠️ **Status: 0.4.0 (pre-release).** Available in English and German (follows the system language, switchable in the settings or with `--lang`).
 
 ## What CVEScout does – and what it doesn't
 
@@ -39,6 +39,7 @@ in the wild are highlighted using the CISA *Known Exploited Vulnerabilities* cat
 | Plausibility check | Matches that are formally correct but implausible (e.g. same product name, different product) are marked *uncertain* instead of raising an alarm |
 | Menu bar & background | Status icon in the menu bar, automatic scans (6 h to weekly), notifications only for *new* findings, launch at login |
 | Export & CLI | Markdown/JSON reports, `cvescout` command line tool (exit code 2 on findings) |
+| Languages | English and German – app, CLI and reports. Advisory titles from the BSI are published in German only. |
 
 ## Installation
 
@@ -60,6 +61,7 @@ swift run cvescout                                    # full scan
 swift run cvescout --cves examples/cve-liste-beispiel.txt
 swift run cvescout --markdown > report.md
 NVD_API_KEY=… swift run cvescout                      # faster NVD lookups with your own key
+swift run cvescout --lang en                          # force English output (or CVESCOUT_LANG=en)
 ```
 
 Without an API key the NVD allows 5 requests per 30 seconds, so the first scan takes about a minute; results
@@ -95,7 +97,7 @@ scripts/               build-app.sh, package-release.sh, make-icon.swift
 - [x] BSI + NVD matching, CVE lists, system checks, plausibility check
 - [x] Menu bar mode with background scans and notifications
 - [x] License, contributing guide, security policy, CI, automated releases, app icon
-- [ ] English user interface
+- [x] English and German user interface
 - [ ] Screenshots
 - [ ] Launch agents and browser extension checks
 - [ ] Signed and notarized releases (Developer ID)

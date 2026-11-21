@@ -11,7 +11,7 @@ CVEScout erfasst die auf deinem Mac installierte Software, gleicht deren Version
 Sicherheitseinstellungen von macOS. Aktiv ausgenutzte Lücken werden über den
 CISA-Katalog *Known Exploited Vulnerabilities* (KEV) hervorgehoben.
 
-> ⚠️ **Status: 0.3.0 (Entwicklungsversion).** Die Oberfläche ist derzeit auf Deutsch.
+> ⚠️ **Status: 0.4.0 (Entwicklungsversion).** Auf Deutsch und Englisch – folgt der Systemsprache, umschaltbar in den Einstellungen bzw. mit `--lang`.
 
 ## Was CVEScout macht – und was nicht
 
@@ -118,7 +118,7 @@ testet und veröffentlicht zip, dmg und CLI.
 - [x] Hintergrund-Scan mit Benachrichtigung (Menüleisten-Modus) – 0.3
 - [x] Lizenz (MIT), NOTICE, CONTRIBUTING, SECURITY, Issue-Vorlagen
 - [x] GitHub Actions: CI und automatische Releases (zip, dmg, CLI), App-Icon
-- [ ] Englische Oberfläche
+- [x] Englische und deutsche Oberfläche – 0.4
 - [ ] Screenshots im README
 - [ ] Notarisierte, signierte Release-Builds (Developer ID)
 

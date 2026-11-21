@@ -34,6 +34,8 @@ struct CVEScoutCLI {
             Umgebungsvariable NVD_API_KEY: optionaler NVD-API-Schlüssel (schnellere Abfragen)
 
             Exit-Code: 0 = nichts gefunden, 1 = Fehler, 2 = Schwachstellen gefunden / CVE betroffen
+
+            \(DataSources.attribution)
             """)
             exit(0)
         }

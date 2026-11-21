@@ -62,7 +62,7 @@ public enum ReportExport {
         if !report.warnings.isEmpty {
             md += "\n## Hinweise\n\n" + report.warnings.map { "- \($0)" }.joined(separator: "\n") + "\n"
         }
-        md += "\n---\nQuellen: BSI WID/CERT-Bund (CSAF, TLP:WHITE), NIST NVD, CISA Known Exploited Vulnerabilities.\n"
+        md += "\n---\n\(DataSources.attribution)\n"
         md += "Versionsabgleich ohne Gewähr – Ergebnisse bitte mit den verlinkten Hinweisen prüfen.\n"
         return md
     }

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unveröffentlicht
+
+- MIT-Lizenz, `NOTICE.md` mit Datenquellen, Datenschutzangaben und dem von der NVD geforderten Hinweis
+  (auch in App, CLI-Hilfe und Markdown-Bericht).
+- Bundle-ID `io.github.seyi23.cvescout`, im Build-Skript per `BUNDLE_ID` überschreibbar.
+- GitHub Actions: Build, Tests und App-Bundle als Artefakt bei jedem Push/PR.
+
 ## 0.3.0 – 2026-11-21
 
 - **Menüleisten-Modus:** Schild-Symbol in der Menüleiste zeigt den Status (grün/orange/rot), ein Klick öffnet

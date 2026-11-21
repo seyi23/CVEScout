@@ -43,9 +43,12 @@ struct OverviewView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
-                    Text("CVEScout vergleicht Versionsnummern mit veröffentlichten Sicherheitshinweisen. Es werden keine Exploits ausgeführt. Ergebnisse ohne Gewähr – Details stehen jeweils im verlinkten BSI-Hinweis.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("CVEScout vergleicht Versionsnummern mit veröffentlichten Sicherheitshinweisen. Es werden keine Exploits ausgeführt. Ergebnisse ohne Gewähr – Details stehen jeweils im verlinkten Originalhinweis.")
+                        Text(DataSources.attribution)
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 }
                 .padding(24)
             }

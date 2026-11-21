@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build & Test (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # The code uses Swift 6.2 features (@concurrent) → pick the newest installed Xcode.
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -n 1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          swift --version
+
+      - name: Build
+        run: swift build
+
+      # Unit tests use fixtures only – no network access needed.
+      - name: Test
+        run: swift test
+
+      - name: Build app bundle
+        run: ./scripts/build-app.sh
+
+      - name: Upload app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: CVEScout-app-${{ github.sha }}
+          path: build/CVEScout.app
+          retention-days: 14

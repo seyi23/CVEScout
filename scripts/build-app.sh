@@ -3,7 +3,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION="${VERSION:-0.1.0}"
+VERSION="${VERSION:-0.3.0}"
+# Reverse-DNS identifier; override for forks: BUNDLE_ID=io.github.<user>.cvescout ./scripts/build-app.sh
+BUNDLE_ID="${BUNDLE_ID:-io.github.seyi23.cvescout}"
 APP="build/CVEScout.app"
 
 swift build -c release --product CVEScoutApp
@@ -22,7 +24,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <dict>
     <key>CFBundleName</key><string>CVEScout</string>
     <key>CFBundleDisplayName</key><string>CVEScout</string>
-    <key>CFBundleIdentifier</key><string>io.github.cvescout</string>
+    <key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
     <key>CFBundleExecutable</key><string>CVEScout</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>${VERSION}</string>
@@ -30,10 +32,10 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
     <key>NSHighResolutionCapable</key><true/>
-    <key>NSHumanReadableCopyright</key><string>CVEScout – lokaler Schwachstellen-Check</string>
+    <key>NSHumanReadableCopyright</key><string>© 2026 seyi23 · MIT-Lizenz</string>
 </dict>
 </plist>
 PLIST
 
 codesign --force --deep --sign - "$APP"
-echo "✔ $APP gebaut (Version $VERSION)"
+echo "✔ $APP gebaut (Version $VERSION, $BUNDLE_ID)"

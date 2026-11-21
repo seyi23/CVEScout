@@ -36,7 +36,7 @@ CISA-Katalog *Known Exploited Vulnerabilities* (KEV) hervorgehoben.
 
 ## Installation & Start
 
-Voraussetzungen: macOS 14 oder neuer, Xcode bzw. Swift 6 Toolchain.
+Voraussetzungen: macOS 14 oder neuer zum Ausführen; zum Bauen Xcode 26 oder neuer (Swift 6.2+).
 
 ```bash
 ./scripts/build-app.sh          # baut build/CVEScout.app (ad-hoc signiert)
@@ -107,6 +107,12 @@ scripts/build-app.sh   App-Bundle bauen
 - [ ] App-Icon, Englische Lokalisierung
 - [ ] Notarisierte, signierte Release-Builds (Developer ID) + GitHub Actions CI
 - [ ] Lizenz festlegen (Vorschlag: MIT), CONTRIBUTING, Veröffentlichung auf GitHub
+
+## Lizenz
+
+[MIT](LICENSE). Hinweise zu den Datenquellen und zum Datenschutz stehen in [NOTICE.md](NOTICE.md).
+
+*This product uses the NVD API but is not endorsed or certified by the NVD.*
 
 ## Haftungsausschluss
 

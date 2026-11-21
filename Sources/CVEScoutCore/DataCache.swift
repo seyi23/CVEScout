@@ -14,7 +14,7 @@ public final class DataCache: Sendable {
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 60
         config.timeoutIntervalForResource = 600
-        config.httpAdditionalHeaders = ["User-Agent": "CVEScout/0.1 (local macOS vulnerability check)"]
+        config.httpAdditionalHeaders = ["User-Agent": "CVEScout (local macOS vulnerability check)"]
         self.session = URLSession(configuration: config)
     }
 
